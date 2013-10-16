@@ -5,17 +5,21 @@ module.exports = function(grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		// Metadata.
-		pkg: {
-			title: "DDK 2 Client JavaScript Library",
-			name: "ddk2",
-			extension: "js"
+		pkg: grunt.file.readJSON("package.json"),
+		
+		banner: function (filename) {
+			return "/* <%= pkg.title %>\n" +
+			" * Filename: " + filename + "\n" +
+			" * Version: <%= pkg.version %>\n" +
+			" * Date: <%= grunt.template.today('yyyy-mm-dd HH:MM:ss') %>\n" +
+			" * Copyright (c) <%= grunt.template.today('yyyy') %> PureShare, Inc.\n" +
+			" */\n\n";
 		},
 		
-		banner: "/* <%= pkg.title %>\n" +
-		" * <%= pkg.name %>.<%= pkg.extension %>\n" +
-		" * <%= grunt.template.today('yyyy-mm-dd HH:MM:ss') %>\n" +
-		" * Copyright (c) <%= grunt.template.today('yyyy') %> PureShare, Inc.\n" +
-		" */\n\n",
+		filename: function (settings) {
+			settings = grunt.util._.defaults(settings || {}, { minify: false, flag: "" }); 
+			return "<%= pkg.name %>" + (settings.flag ? "-" + settings.flag : "") + (settings.minify ? ".min" : "") + ".<%= pkg.extension %>";
+		},
 
 		// Task configuration.
 		clean: {
@@ -24,13 +28,13 @@ module.exports = function(grunt) {
 		
 		concat: {
 			options: {
-				banner: "<%= banner %>",
+				banner: "<%= banner(filename()) %>",
 				stripBanners: true,
 				separator: ";" + grunt.util.linefeed
 			},
 			dist: {
 				src: ["js/*.js"],
-				dest: "dist/<%= pkg.name %>.<%= pkg.extension %>"
+				dest: "dist/<%= filename() %>"
 			}
 		},
 
@@ -40,11 +44,11 @@ module.exports = function(grunt) {
 		
 		uglify: {
 			options: {
-				banner: "<%= banner %>"
+				banner: "<%= banner(filename({ minify: true })) %>"
 			},
 			dist: {
 				src: "<%= concat.dist.dest %>",
-				dest: "dist/<%= pkg.name %>.min.<%= pkg.extension %>"
+				dest: "dist/<%= filename({ minify: true }) %>"
 			}
 		}
 	});

@@ -1,6 +1,7 @@
 /* DDK 2 Client JavaScript Library
- * ddk2.js
- * 2013-10-16 11:38:40
+ * Filename: ddk2.js
+ * Version: 2.0.0b17
+ * Date: 2013-10-16 16:16:46
  * Copyright (c) 2013 PureShare, Inc.
  */
 
