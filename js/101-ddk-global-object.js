@@ -674,6 +674,84 @@
 			}
 		};
 
+		var defaultScorecardOptions2 = {
+			  "sScrollX": "100%"
+			, "bScrollCollapse": true
+			, "bDeferRender": false
+			, "sDom": "t"
+			, "bPaginate": false
+			, "bProcessing": false
+			, "bLengthChange": false
+			, "bJQueryUI": false
+			, "bAutoWidth": true
+			, "aaSorting": []
+			, "aoColumnDefs": []
+			, "oLanguage": {
+				  "oPaginate": {
+							  "sFirst": "First"
+							, "sLast": "Last"
+							, "sNext": "Next"
+							, "sPrevious": "Prev"
+						}
+				, "sInfo": "Showing _TOTAL_ entries"
+				, "sInfoEmpty": "Showing 0 entries"
+				, "sProcessing": "<img src=\"" + (oldIE ? fullPath : "") + "resources/ddk/imgs/spinner_32x32.gif\" alt=\"Processing...\">"
+			}
+		};
+
+		function initScorecard2(id) {
+			var $control = $('#psc_scorecard2_' + id + '_widget'),
+				$data = $('#psc_scorecard2_data_' + id),
+				data = $data.data(),
+				count = data && data.count || 0,
+				height = data && data.height || 0,
+				md = data && data.md || "",
+				ms = data && data.ms || "",
+				config = data && data.config || "\"\"",
+				options = {},
+				scorecardOptions = {},
+				isGrouped = Boolean(data && data.gk || false),
+				isSortable = Boolean(data && data.sortable || false),
+				$content,
+				metrics,
+				attributes,
+				displays;
+
+			DDK.scorecard2.data[id] = DDK.scorecard2.data[id] || {};
+
+			options = $.extend(true, DDK.scorecard2.data[id], {
+				height: height,
+				md: md,
+				ms: ms
+			});
+
+			scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions, {
+				"bSort": isSortable
+			});
+
+			if ($control.hasClass("ps-content-block") && !DDK.modePDF) {
+				$.extend(true, scorecardOptions, {
+					"sScrollY": height
+				});
+			}
+
+			// all scorecards should use the ddk-formatted sort type
+			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-formatted", "aTargets": ["_all"] });
+
+			if (isGrouped) {
+				groupScorecard(id);
+			} else {
+				options.table = $('#' + id).dataTable( $.extend(true, scorecardOptions, DDK.scorecard2.data[id].customOptions || {}) );
+				fixColumnSizing('#psc_scorecard2_' + id + '_widget');
+			}
+
+			DDK.format($control);
+			DDK.scorecard2.resize(id);
+
+			DDK.control.init($control);
+		}
+		
+		
 		function initTable(id) {
 			var $widget = $('#psc_table_' + id + '_widget'),
 				$data = $('#psc_table_data_' + id),
@@ -1920,6 +1998,15 @@
 				title: "Scorecard",
 				fodResize: true,
 				defaultOptions: defaultScorecardOptions
+			},
+			scorecard2: {
+				resize: PSC_Scorecard2_Resize,
+				reload: PSC_Scorecard2_Reload,
+				data: {},
+				init: initScorecard2,
+				title: "Scorecard",
+				fodResize: true,
+				defaultOptions: defaultScorecardOptions2
 			},
 			layout: {
 				options: {
