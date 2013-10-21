@@ -123,16 +123,16 @@
 				var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 				return v.toString(16);
 			});
-		}
-	});
-	
-	_.mixin({
-		// returns true if a value resolves to a numeric value (a number in the set of Real Numbers (R) -- not infinite, not NaN)
-		isRealNumber: function(n) {
-			return !isNaN(+n) && isFinite(n);
 		},
-		isPositiveInteger: function(n) {
-			return (parseInt(n, 10) === (+n)) && n > 0;
+		
+		prune: function (object) {
+			_.forOwn(object, function (value, key) {
+				if (value === "") {
+					delete object[key];
+				}
+			});
+			
+			return object;
 		}
 	});
 })(this);
