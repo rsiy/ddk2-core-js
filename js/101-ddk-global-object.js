@@ -736,7 +736,7 @@
 			}
 
 			// all scorecards should use the ddk-formatted sort type
-			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-formatted", "aTargets": ["_all"] });
+			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-scorecard2", "aTargets": ["_all"] });
 
 			if (isGrouped) {
 				groupScorecard(id);

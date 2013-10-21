@@ -176,6 +176,45 @@ jQuery.fn.dataTableExt.oSort["ddk-formatted-desc"] = function(a, b) {
 	return ((x < y) ? 1 : ((x > y) ?  -1 : 0));
 };
 
+function ddkScorecardSortValue(target) {
+	var $sort,
+		$target = $("<div/>").html(target);
+	
+	// find a data-sort attribute
+	$sort = $target.find("[data-sort]");
+	if ($sort.size()) {
+		return $sort.data("sort");
+	}
+	
+	// find a data-format attribute on the cell content div
+	$sort = $target.find(".ddk-scorecard-column-content[data-format]");
+	if ($sort.size()) {
+		return DDK.format($sort, true);
+	}
+	
+	// find the html value of the cell content div
+	$sort = $target.find(".ddk-scorecard-column-content");
+	if ($sort.size()) {
+		return $sort.html();
+	}
+	
+	// give up and return 0
+	return 0;
+}
+
+function ddkScorecardSort(a, b) {
+	return naturalSort(ddkScorecardSortValue(a), ddkScorecardSortValue(b));
+}
+
+jQuery.fn.dataTableExt.oSort["ddk-scorecard2-asc"] = function(a, b) {
+	return ddkScorecardSort(a, b);
+};
+
+jQuery.fn.dataTableExt.oSort["ddk-scorecard2-desc"] = function(a, b) {
+	return ddkScorecardSort(a, b) * -1;
+};
+
+
 jQuery.fn.dataTableExt.oSort['num-html-asc']  = function(a,b) {
 	var x = a.replace( /<.*?>/g, "" );
 	var y = b.replace( /<.*?>/g, "" );
