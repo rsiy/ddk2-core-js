@@ -608,9 +608,9 @@
 			DDK.control.init($widget);
 		}
 
-		function groupScorecard(id) {
-			var $widget = $('#psc_scorecard_' + id + '_widget'),
-				$data = $('#psc_scorecard_data_' + id),
+		function groupScorecard(id, version) {
+			var $widget = $('#psc_scorecard' + (version || "") + '_' + id + '_widget'),
+				$data = $('#psc_scorecard' + (version || "") + '_data_' + id),
 				isExpanded = $data.data("ge"),
 				$rows = $widget.find("tbody tr"),
 				groupIndex = 0;
@@ -620,15 +620,15 @@
 
 				if ($elem.hasClass("row-grouping-header")) {
 					groupIndex = 0;
-					$elem
-						.find("th:first")
-							// get the first group header th element to have text-align: left
-							.addClass("ddk-format-metricname")
-							// add +/- image and toggle event
-							.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>")
-								.click(function() {
+					if (version === "2") {
+						$elem
+							.find("th:first")
+								// get the first group header th element to have text-align: left
+								.addClass("text-left")
+								// add +/- image and toggle event
+								.click(function () {
 									var $this = $(this),
-										$img = $this.find("img:first"),
+										$img = $this.find("img.detail-toggle"),
 										src = $img.attr("src");
 
 									if (src.indexOf("minus.png") > -1) {
@@ -638,7 +638,31 @@
 									}
 									$this.closest("tr").nextUntil(".row-grouping-header").toggleClass("ps-hidden");
 									DDK.format($widget);
-								});
+								})
+								.find(".ddk-scorecard-column-content")
+									.addClass("text-nowrap")
+									.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>");					
+					} else {
+						$elem
+							.find("th:first")
+								// get the first group header th element to have text-align: left
+								.addClass("ddk-format-metricname")
+								// add +/- image and toggle event
+								.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>")
+									.click(function() {
+										var $this = $(this),
+											$img = $this.find("img:first"),
+											src = $img.attr("src");
+
+										if (src.indexOf("minus.png") > -1) {
+											$img.attr("src", (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/plus.png");
+										} else {
+											$img.attr("src", (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/minus.png");
+										}
+										$this.closest("tr").nextUntil(".row-grouping-header").toggleClass("ps-hidden");
+										DDK.format($widget);
+									});
+					}
 				} else {
 					$elem.addClass(groupIndex % 2 ? "even" : "odd");
 					groupIndex += 1;
@@ -739,7 +763,7 @@
 			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-scorecard2", "aTargets": ["_all"] });
 
 			if (isGrouped) {
-				groupScorecard(id);
+				groupScorecard(id, "2");
 			} else {
 				options.table = $('#' + id).dataTable( $.extend(true, scorecardOptions, DDK.scorecard2.data[id].customOptions || {}) );
 				fixColumnSizing('#psc_scorecard2_' + id + '_widget');
