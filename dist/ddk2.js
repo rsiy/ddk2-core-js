@@ -1,7 +1,7 @@
 /* DDK 2 Client JavaScript Library
  * Filename: ddk2.js
  * Version: 2.0.0b17
- * Date: 2013-10-18 14:58:18
+ * Date: 2013-10-22 14:05:41
  * Copyright (c) 2013 PureShare, Inc.
  */
 
@@ -16658,19 +16658,20 @@ jQuery.migrateMute===void 0&&(jQuery.migrateMute=!0),function(e,t,n){function r(
 				var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
 				return v.toString(16);
 			});
-		}
-	});
-	
-	_.mixin({
-		// returns true if a value resolves to a numeric value (a number in the set of Real Numbers (R) -- not infinite, not NaN)
-		isRealNumber: function(n) {
-			return !isNaN(+n) && isFinite(n);
 		},
-		isPositiveInteger: function(n) {
-			return (parseInt(n, 10) === (+n)) && n > 0;
+		
+		prune: function (object) {
+			_.forOwn(object, function (value, key) {
+				if (value === "") {
+					delete object[key];
+				}
+			});
+			
+			return object;
 		}
 	});
-})(this);;
+})(this);
+;
 //  Underscore.string
 //  (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 //  Underscore.string is freely distributable under the terms of the MIT license.
@@ -46042,6 +46043,45 @@ jQuery.fn.dataTableExt.oSort["ddk-formatted-desc"] = function(a, b) {
 	return ((x < y) ? 1 : ((x > y) ?  -1 : 0));
 };
 
+function ddkScorecardSortValue(target) {
+	var $sort,
+		$target = $("<div/>").html(target);
+	
+	// find a data-sort attribute
+	$sort = $target.find("[data-sort]");
+	if ($sort.size()) {
+		return $sort.data("sort");
+	}
+	
+	// find a data-format attribute on the cell content div
+	$sort = $target.find(".ddk-scorecard-column-content[data-format]");
+	if ($sort.size()) {
+		return DDK.format($sort, true);
+	}
+	
+	// find the html value of the cell content div
+	$sort = $target.find(".ddk-scorecard-column-content");
+	if ($sort.size()) {
+		return $sort.html();
+	}
+	
+	// give up and return 0
+	return 0;
+}
+
+function ddkScorecardSort(a, b) {
+	return naturalSort(ddkScorecardSortValue(a), ddkScorecardSortValue(b));
+}
+
+jQuery.fn.dataTableExt.oSort["ddk-scorecard2-asc"] = function(a, b) {
+	return ddkScorecardSort(a, b);
+};
+
+jQuery.fn.dataTableExt.oSort["ddk-scorecard2-desc"] = function(a, b) {
+	return ddkScorecardSort(a, b) * -1;
+};
+
+
 jQuery.fn.dataTableExt.oSort['num-html-asc']  = function(a,b) {
 	var x = a.replace( /<.*?>/g, "" );
 	var y = b.replace( /<.*?>/g, "" );
@@ -55418,9 +55458,9 @@ function naturalSort (a, b) {
 			DDK.control.init($widget);
 		}
 
-		function groupScorecard(id) {
-			var $widget = $('#psc_scorecard_' + id + '_widget'),
-				$data = $('#psc_scorecard_data_' + id),
+		function groupScorecard(id, version) {
+			var $widget = $('#psc_scorecard' + (version || "") + '_' + id + '_widget'),
+				$data = $('#psc_scorecard' + (version || "") + '_data_' + id),
 				isExpanded = $data.data("ge"),
 				$rows = $widget.find("tbody tr"),
 				groupIndex = 0;
@@ -55428,7 +55468,30 @@ function naturalSort (a, b) {
 			$rows.each(function(index, elem) {
 				var $elem = $(elem);
 
-				if ($elem.hasClass("row-grouping-header")) {
+				if ($elem.hasClass("group")) {
+					groupIndex = 0;
+					$elem
+						.find("th:first")
+							.find(".content")
+								.addClass("text-nowrap")
+								.prepend("<span class=\"ddk-icon toggle\">" + (isExpanded ? /* down */ "&#286;" : /* right */ "&#285;") + "</span>")
+								.end()
+							// get the first group header th element to have text-align: left
+							.addClass("text-left")
+							// add +/- image and toggle event
+							.click(function () {
+								var $this = $(this),
+									$icon = $this.find(".ddk-icon.toggle");
+									
+								$icon.html(function (index, value) {
+									return (value === /* down */ "\u011E" ? /* right */ "\u011D" : /* down */ "\u011E");
+								});
+
+								$this.closest("tr").nextUntil(".group").toggleClass("ps-hidden");
+								DDK.format($widget);
+							})
+					
+				} else if ($elem.hasClass("row-grouping-header"))  {
 					groupIndex = 0;
 					$elem
 						.find("th:first")
@@ -55546,10 +55609,10 @@ function naturalSort (a, b) {
 			}
 
 			// all scorecards should use the ddk-formatted sort type
-			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-formatted", "aTargets": ["_all"] });
+			scorecardOptions.aoColumnDefs.push({ "sType": "ddk-scorecard2", "aTargets": ["_all"] });
 
 			if (isGrouped) {
-				groupScorecard(id);
+				groupScorecard(id, "2");
 			} else {
 				options.table = $('#' + id).dataTable( $.extend(true, scorecardOptions, DDK.scorecard2.data[id].customOptions || {}) );
 				fixColumnSizing('#psc_scorecard2_' + id + '_widget');

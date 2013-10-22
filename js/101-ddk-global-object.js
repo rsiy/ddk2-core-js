@@ -618,17 +618,40 @@
 			$rows.each(function(index, elem) {
 				var $elem = $(elem);
 
-				if ($elem.hasClass("row-grouping-header")) {
+				if ($elem.hasClass("group")) {
 					groupIndex = 0;
-					if (version === "2") {
-						$elem
-							.find("th:first")
-								// get the first group header th element to have text-align: left
-								.addClass("text-left")
-								// add +/- image and toggle event
-								.click(function () {
+					$elem
+						.find("th:first")
+							.find(".content")
+								.addClass("text-nowrap")
+								.prepend("<span class=\"ddk-icon toggle\">" + (isExpanded ? /* down */ "&#286;" : /* right */ "&#285;") + "</span>")
+								.end()
+							// get the first group header th element to have text-align: left
+							.addClass("text-left")
+							// add +/- image and toggle event
+							.click(function () {
+								var $this = $(this),
+									$icon = $this.find(".ddk-icon.toggle");
+									
+								$icon.html(function (index, value) {
+									return (value === /* down */ "\u011E" ? /* right */ "\u011D" : /* down */ "\u011E");
+								});
+
+								$this.closest("tr").nextUntil(".group").toggleClass("ps-hidden");
+								DDK.format($widget);
+							})
+					
+				} else if ($elem.hasClass("row-grouping-header"))  {
+					groupIndex = 0;
+					$elem
+						.find("th:first")
+							// get the first group header th element to have text-align: left
+							.addClass("ddk-format-metricname")
+							// add +/- image and toggle event
+							.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>")
+								.click(function() {
 									var $this = $(this),
-										$img = $this.find("img.detail-toggle"),
+										$img = $this.find("img:first"),
 										src = $img.attr("src");
 
 									if (src.indexOf("minus.png") > -1) {
@@ -638,31 +661,7 @@
 									}
 									$this.closest("tr").nextUntil(".row-grouping-header").toggleClass("ps-hidden");
 									DDK.format($widget);
-								})
-								.find(".ddk-scorecard-column-content")
-									.addClass("text-nowrap")
-									.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>");					
-					} else {
-						$elem
-							.find("th:first")
-								// get the first group header th element to have text-align: left
-								.addClass("ddk-format-metricname")
-								// add +/- image and toggle event
-								.prepend("<img class='detail-toggle' src='" + (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/" + (isExpanded ? "minus.png" : "plus.png") + "'>")
-									.click(function() {
-										var $this = $(this),
-											$img = $this.find("img:first"),
-											src = $img.attr("src");
-
-										if (src.indexOf("minus.png") > -1) {
-											$img.attr("src", (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/plus.png");
-										} else {
-											$img.attr("src", (oldIE ? fullPath : "") + "resources/ddk/imgs/scorecard/minus.png");
-										}
-										$this.closest("tr").nextUntil(".row-grouping-header").toggleClass("ps-hidden");
-										DDK.format($widget);
-									});
-					}
+								});
 				} else {
 					$elem.addClass(groupIndex % 2 ? "even" : "odd");
 					groupIndex += 1;
