@@ -1243,65 +1243,66 @@
 	}
 
 	function PSC_Scorecard2_Resize(id) {
-		// var $control = $('#psc_scorecard_' + id + '_widget'),
-			// $content = $('#psc_scorecard_data_' + id),
-			// $data = $('#psc_scorecard_data_' + id),
-			// controlHeight = $control.height(),
-			// controlWidth = $control.width(),
-			// toolbarHeight = $control.children('.ps-toolbar').first().outerHeight(true) + $control.children('.ps-toolbar').last().outerHeight(true) + $control.children('.ddk-fav-bar').outerHeight(true),
-			// contentHeight = controlHeight - toolbarHeight,
-			// options = DDK.scorecard.data[id],
-			// isGrouped = Boolean($data.data('gk')),
-			// isBlock = $control.hasClass("ps-content-block"),
-			// isRow = $control.hasClass("ps-content-row"),
-			// isEmpty = $data.data("config") === "\"\"";
+		var $control = $('#psc_scorecard2_' + id + '_widget'),
+			$content = $('#psc_scorecard2_data_' + id),
+			$data = $('#psc_scorecard2_data_' + id),
+			controlHeight = $control.height(),
+			controlWidth = $control.width(),
+			toolbarHeight = $control.children('.ps-toolbar').first().outerHeight(true) + $control.children('.ps-toolbar').last().outerHeight(true) + $control.children('.ddk-fav-bar').outerHeight(true),
+			contentHeight = controlHeight - toolbarHeight,
+			options = DDK.scorecard2.data[id],
+			isGrouped = Boolean($data.data('gk')),
+			isSortable = Boolean($data.data('sortable')),
+			isBlock = $control.hasClass("ps-content-block"),
+			isRow = $control.hasClass("ps-content-row"),
+			isEmpty = $data.data("config") === "\"\"";
 
-		// if (isEmpty || isGrouped && isBlock && !DDK.modePDF) {
-			// K('s_' + id + '_h', contentHeight);
-			// $content.height(contentHeight);
-		// } else if (isRow || DDK.modePDF) {
-			// if (options && options.table && options.table.fnSettings()) {
-				// PSC_Scorecard_Resize_Scroll_Body(id, true);
-				// setTimeout(function() { PSC_Scorecard_Resize_Scroll_Body(id, true); }, 200);
-			// }
-		// } else {
-			// if (options && options.table && options.table.fnSettings()) {
-				// PSC_Scorecard_Resize_Scroll_Body(id);
-				// setTimeout(function() { PSC_Scorecard_Resize_Scroll_Body(id); }, 200);
-			// }
-		// }
+		if (isEmpty || isGrouped && !isSortable && isBlock && !DDK.modePDF) {
+			K('s_' + id + '_h', contentHeight);
+			$content.height(contentHeight);
+		} else if (isRow || DDK.modePDF) {
+			if (options && options.table && options.table.fnSettings()) {
+				PSC_Scorecard2_Resize_Scroll_Body(id, true);
+				setTimeout(function() { PSC_Scorecard2_Resize_Scroll_Body(id, true); }, 200);
+			}
+		} else {
+			if (options && options.table && options.table.fnSettings()) {
+				PSC_Scorecard2_Resize_Scroll_Body(id);
+				setTimeout(function() { PSC_Scorecard2_Resize_Scroll_Body(id); }, 200);
+			}
+		}
 	}
 
 
 	function PSC_Scorecard2_Resize_Scroll_Body(id, isRow) {
-		// var options = DDK.scorecard.data[id];
+		var options = DDK.scorecard2.data[id];
 
-		// options.table.fnAdjustColumnSizing();
+		options.table.fnAdjustColumnSizing();
 
-		// var $control = $('#psc_scorecard_' + id + '_widget');
+		var $control = $('#psc_scorecard2_' + id + '_widget');
 
-		// var controlHeight = $control.height();
-		// var controlWidth = $control.width();
-		// var toolbarHeight = $control.children('.ps-toolbar').first().outerHeight(true);
-		// toolbarHeight += $control.children('.ps-toolbar').last().outerHeight(true);
-		// toolbarHeight += $control.children('.ddk-fav-bar').outerHeight(true);
-		// var infoHeight = $control.find('.dataTables_info').outerHeight(true);
-		// var pageHeight = $control.find('.dataTables_paginate').outerHeight(true);
-		// var lengthHeight = $control.find('.dataTables_length').outerHeight(true);
+		var controlHeight = $control.height();
+		var controlWidth = $control.width();
+		var toolbarHeight = $control.children('.ps-toolbar').first().outerHeight(true);
+		toolbarHeight += $control.children('.ps-toolbar').last().outerHeight(true);
+		toolbarHeight += $control.children('.ddk-fav-bar').outerHeight(true);
+		var infoHeight = $control.find('.dataTables_info').outerHeight(true);
+		var pageHeight = $control.find('.dataTables_paginate').outerHeight(true);
+		var lengthHeight = $control.find('.dataTables_length').outerHeight(true);
 
-		// var scrollHeadHeight = $control.find('.dataTables_scrollHead').outerHeight(true);
-		// var scrollFootHeight = $control.find('.dataTables_scrollFoot').outerHeight(true);
+		var scrollHeadHeight = $control.find('.dataTables_scrollHead').outerHeight(true);
+		var scrollFootHeight = $control.find('.dataTables_scrollFoot').outerHeight(true);
 
-		// var scrollBodyHeight = controlHeight - toolbarHeight - lengthHeight - scrollHeadHeight - scrollFootHeight;
-		// scrollBodyHeight -= infoHeight > pageHeight ? infoHeight : pageHeight;
+		var scrollBodyHeight = controlHeight - toolbarHeight - lengthHeight - scrollHeadHeight - scrollFootHeight;
+		scrollBodyHeight -= infoHeight > pageHeight ? infoHeight : pageHeight;
 
-		// //if (isRow) { scrollBodyHeight = controlHeight; }
-		// //console.log("Scroll Body Height: ", id, scrollBodyHeight);
-		// //console.log(scrollBodyHeight, " = ", controlHeight, toolbarHeight, lengthHeight, scrollHeadHeight,scrollFootHeight, infoHeight, pageHeight);
-		// if (!isRow) {
-			// options.table.fnSettings().oScroll.sY = scrollBodyHeight + "px";
-			// K('s_' + id + '_h', scrollBodyHeight);
-			// options.height = scrollBodyHeight;
-		// }
-		// fixColumnSizing('#psc_scorecard_' + id + '_widget')
+		//if (isRow) { scrollBodyHeight = controlHeight; }
+		//console.log("Scroll Body Height: ", id, scrollBodyHeight);
+		//console.log(scrollBodyHeight, " = ", controlHeight, toolbarHeight, lengthHeight, scrollHeadHeight,scrollFootHeight, infoHeight, pageHeight);
+		if (!isRow) {
+			options.table.fnSettings().oScroll.sY = scrollBodyHeight + "px";
+			K('s_' + id + '_h', scrollBodyHeight);
+			options.height = scrollBodyHeight;
+		}
+		fixColumnSizing('#psc_scorecard2_' + id + '_widget')
 	}
