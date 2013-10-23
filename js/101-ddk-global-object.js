@@ -748,9 +748,11 @@
 				ms: ms
 			});
 
-			scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions, {
-				"bSort": isSortable
-			});
+			//scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions, {
+			//	"bSort": isSortable
+			//});
+			
+			scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions);
 
 			if ($control.hasClass("ps-content-block") && !DDK.modePDF) {
 				$.extend(true, scorecardOptions, {
@@ -763,7 +765,7 @@
 
 			if (isGrouped) {
 				groupScorecard(id, "2");
-			} else {
+			} else if (isSortable) {
 				options.table = $('#' + id).dataTable( $.extend(true, scorecardOptions, DDK.scorecard2.data[id].customOptions || {}) );
 				fixColumnSizing('#psc_scorecard2_' + id + '_widget');
 			}

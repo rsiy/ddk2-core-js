@@ -1,7 +1,7 @@
 /* DDK 2 Client JavaScript Library
  * Filename: ddk2.js
  * Version: 2.0.0b17
- * Date: 2013-10-22 14:05:41
+ * Date: 2013-10-23 13:05:31
  * Copyright (c) 2013 PureShare, Inc.
  */
 
@@ -55598,9 +55598,11 @@ function naturalSort (a, b) {
 				ms: ms
 			});
 
-			scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions, {
-				"bSort": isSortable
-			});
+			//scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions, {
+			//	"bSort": isSortable
+			//});
+			
+			scorecardOptions = $.extend(true, {}, DDK.scorecard2.defaultOptions);
 
 			if ($control.hasClass("ps-content-block") && !DDK.modePDF) {
 				$.extend(true, scorecardOptions, {
@@ -55613,7 +55615,7 @@ function naturalSort (a, b) {
 
 			if (isGrouped) {
 				groupScorecard(id, "2");
-			} else {
+			} else if (isSortable) {
 				options.table = $('#' + id).dataTable( $.extend(true, scorecardOptions, DDK.scorecard2.data[id].customOptions || {}) );
 				fixColumnSizing('#psc_scorecard2_' + id + '_widget');
 			}
