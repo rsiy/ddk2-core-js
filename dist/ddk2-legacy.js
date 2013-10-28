@@ -58252,6 +58252,8 @@ $(document).ready(function () {
  * Will not throw an error when console is undefined (IE 8 and 9 when Developer Tools is not open).
  * Will JSON.stringify objects in older console implementations (and recent IE) to avoid logging "[object Object]".
  */
+ 
+ /*
 _.each(["error", "warn", "info", "log"], function(method, methodIndex) {
 	var func = window.console && window.console[method];
 	
@@ -58260,24 +58262,28 @@ _.each(["error", "warn", "info", "log"], function(method, methodIndex) {
 	if (func && (DDK.DEBUG || !methodIndex)) {
 		if (func.apply && !(oldIE  || recentIE)) {
 			// if console[method].apply is defined, use it (console methods require the context of console)
-			DDK[method] = func.apply(console, arguments);
+			DDK[method] = function () {
+				func.apply(console, arguments);
+			};
 			return;
 		}
 		
 		// if console[method].apply is undefined, call the method using a single string as argument
 		// _.map() works properly across JavaScript versions on array-like objects such as arguments
 		// you cannot call join() directly on the arguments object in all JavaScript versions because it is not a true array
-		DDK[method] = func(_.map(arguments, function(arg) {
-			// JSON.stringify all objects to avoid logging "[object Object]"
-			return (_.isObject(arg) ? JSON.stringify(arg) : arg);
-		}).join(", "));
+		DDK[method] = function () {
+			func(_.map(arguments, function(arg) {
+				// JSON.stringify all objects to avoid logging "[object Object]"
+				return (_.isObject(arg) ? JSON.stringify(arg) : arg);
+			}).join(", "));
+		};
 		return;
 	}
 	
 	DDK[method] = $.noop();
 });
+*/
 
-/*
 _.each(["error", "warn", "info", "log"], function(method, methodIndex) {
 	DDK[method] = function() {
 		var func = window.console && window.console[method];
@@ -58300,7 +58306,7 @@ _.each(["error", "warn", "info", "log"], function(method, methodIndex) {
 		}
 	}
 });
-*/;
+;
 DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, beforeReload) {
 	// target could be a DOM node, a jQuery selector, or a jQuery collection
 	var $target = $(target),
