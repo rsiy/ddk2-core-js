@@ -1,4 +1,5 @@
 	window.oldIE = oldIE || false;
+	window.recentIE = recentIE || false;
 
 	function PSC_Resize(name, id, forceReload) {
 		DDK[name].resize(id, forceReload);

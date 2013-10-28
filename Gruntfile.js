@@ -17,7 +17,7 @@ module.exports = function(grunt) {
 		},
 		
 		filename: function (settings) {
-			settings = grunt.util._.defaults(settings || {}, { minify: false, flag: "" }); 
+			settings = grunt.util._.defaults(settings || {}, { minify: false, flag: "standard" }); 
 			return "<%= pkg.name %>" + (settings.flag ? "-" + settings.flag : "") + (settings.minify ? ".min" : "") + ".<%= pkg.extension %>";
 		},
 
@@ -28,13 +28,18 @@ module.exports = function(grunt) {
 		
 		concat: {
 			options: {
-				banner: "<%= banner(filename()) %>",
-				stripBanners: true,
+				stripBanners: false,
 				separator: ";" + grunt.util.linefeed
 			},
-			dist: {
-				src: ["js/*.js"],
+			standard: {
+				banner: "<%= banner(filename()) %>",
+				src: ["js/*.js", "!js/*-LEGACY.js"], //
 				dest: "dist/<%= filename() %>"
+			},
+			legacy: {
+				banner: "<%= banner(filename({ flag: 'legacy' })) %>",
+				src: ["js/*.js", "!js/*-STANDARD.js"], // 
+				dest: "dist/<%= filename({ flag: 'legacy' }) %>"
 			}
 		},
 
@@ -43,12 +48,15 @@ module.exports = function(grunt) {
 		},
 		
 		uglify: {
-			options: {
-				banner: "<%= banner(filename({ minify: true })) %>"
-			},
-			dist: {
-				src: "<%= concat.dist.dest %>",
+			standard: {
+				banner: "<%= banner(filename({ minify: true })) %>",
+				src: "<%= concat.standard.dest %>",
 				dest: "dist/<%= filename({ minify: true }) %>"
+			},
+			legacy: {
+				banner: "<%= banner(filename({ minify: true, flag: 'legacy' })) %>",
+				src: "<%= concat.legacy.dest %>",
+				dest: "dist/<%= filename({ minify: true, flag: 'legacy' }) %>"
 			}
 		}
 	});

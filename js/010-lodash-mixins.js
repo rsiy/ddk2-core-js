@@ -127,7 +127,7 @@
 		
 		prune: function (object) {
 			_.forOwn(object, function (value, key) {
-				if (value === "") {
+				if (value === "" || (_.isPlainObject(value) && _.isEmpty(value))) {
 					delete object[key];
 				}
 			});

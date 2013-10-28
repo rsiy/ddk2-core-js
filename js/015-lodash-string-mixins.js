@@ -793,6 +793,32 @@
 		return _.string.parseJSON(str, reviver, _.string.parseQueryString)
 	},
 	
+	// parseTaggedList(str)
+	// attempts to parse a string as a tagged list
+	// tagged list format looks like this:
+	// <taggedpair><taggedkey>key</taggedkey><taggedvalue>value</taggedvalue></taggedpair>
+	// tagged list is a format into which AMEngine keyword values can be rendered without breaking the grammar
+	// will return an array of key/value array pairs
+	parseTaggedList: function (str) {
+		var pairs = [];
+		
+		_.each(str.match(/<taggedpair>.+?<\/taggedpair>/g), function (pairMatch) {
+			var key, value;
+
+			pairMatch = pairMatch.slice(12, -13);
+			_.each(pairMatch.match(/^<taggedkey>.+?<\/taggedkey>/), function (keyMatch) {
+				key = keyMatch.slice(11, -12);
+			});
+			_.each(pairMatch.match(/<taggedvalue>.+?<\/taggedvalue>$/), function (valueMatch) {
+				value = valueMatch.slice(13, -14);
+			});
+			
+			pairs.push([key, value]);
+		});
+		
+		return pairs;
+	},
+	
 	// trimWhiteSpace(str)
 	// trims leading and trailing white space from a string
 	// returns the trimmed string
@@ -879,9 +905,3 @@
   root._ = root._ || {};
   root._.string = root._.str = _s;
 }(this, String);
-
-
-
-
-
-_.mixin(_.string.exports());
