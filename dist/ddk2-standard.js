@@ -17970,6 +17970,13 @@ $.fn.reverse = [].reverse;
   };
 
 }).call(this);;
+Backbone.ViewCurrent = Backbone.View;
+Backbone.View = Backbone.ViewCurrent.extend({
+  constructor: function (options) {
+    this.options = options;
+    Backbone.ViewCurrent.apply(this, arguments);
+  }
+});;
 //! moment.js
 //! version : 2.3.1
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
