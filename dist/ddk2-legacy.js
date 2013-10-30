@@ -20385,13 +20385,26 @@ xReq =null;
 		//alert (daa_urlitem);
 	}
 
-	function run(objID, metricname, callback, options) {
+	function run(objID, metricname, callback, options) {	
         if (typeof callback === "function") {
-            var _callback = function(data, header, id) {
-				hideMask(id);
-				$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
-				callback(data, header, id);
-			};
+            var _callback;
+			if (options && options.requireAsync) {
+				console.log("requireAsync");
+				_callback = function(data, header, id) {
+					DDK.asyncScriptLoad.done(function () {
+						hideMask(id);
+						$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
+						callback(data, header, id);
+					});
+				};
+			} else {
+				console.log("no Async");
+				_callback = function(data, header, id) {
+					hideMask(id);
+					$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
+					callback(data, header, id);
+				};			
+			}
             load(objID, metricname, _callback, options);
         } else {
             load(objID, metricname, callback, options);
@@ -20552,16 +20565,7 @@ xReq =null;
 		}
 
 		if (callback){
-			// set callback to run after async script is loaded if options.requireAsync is set
-			if (options && options.requireAsync) {
-				_callback = function (data, header, id) {
-					DDK.asyncScriptLoad.done(callback(data, header, id));
-				};
-			} else {
-				_callback = callback;
-			}
-			
-			ajaxCaller.postVars('amengine.aspx', q, null, _callback, false, objID);
+			ajaxCaller.postVars('amengine.aspx', q, null, callback, false, objID);
 		}else{
 			ajaxCaller.postVars('amengine.aspx', q, null, returnContents, false, objID);
 		}
@@ -35145,7 +35149,7 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 			}
 		}, { 
 			stateFilter: "s_" + controlId + "_",
-			requireAsync: (_.indexOf(["scorecard", "scorecard2", "table", "tree"], controlName) > -1)
+			requireAsync: (_.indexOf(["scorecard", "scorecard2", "table", "tree", "bamset"], controlName) > -1)
 		});
 	} else {
 		DDK.warn(controlTitle + " Control Reload: " + controlId + " not found.");
