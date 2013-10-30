@@ -497,8 +497,7 @@ xReq =null;
         if (typeof callback === "function") {
             var _callback;
 			if (options && options.requireAsync) {
-				console.log("requireAsync");
-				_callback = function(data, header, id) {
+				_callback = function (data, header, id) {
 					DDK.asyncScriptLoad.done(function () {
 						hideMask(id);
 						$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
@@ -507,7 +506,7 @@ xReq =null;
 				};
 			} else {
 				console.log("no Async");
-				_callback = function(data, header, id) {
+				_callback = function (data, header, id) {
 					hideMask(id);
 					$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
 					callback(data, header, id);
