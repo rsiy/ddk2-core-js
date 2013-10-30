@@ -623,6 +623,7 @@ xReq =null;
 	    if (daa_showmask) showMask(objID);
 	    var url;
 		var randomnumber=Math.floor(Math.random()*11111);
+		var _callback;
 
 		url="?nobody=true&config.mn=" + metricname
 		if ( ddk_ajax_salt ) { url+="&salt=" + randomnumber; }
@@ -659,7 +660,16 @@ xReq =null;
 		}
 
 		if (callback){
-			ajaxCaller.postVars('amengine.aspx', q, null, callback, false, objID);
+			// set callback to run after async script is loaded if options.requireAsync is set
+			if (options && options.requireAsync) {
+				_callback = function (data, header, id) {
+					DDK.asyncScriptLoad.done(callback(data, header, id));
+				};
+			} else {
+				_callback = callback;
+			}
+			
+			ajaxCaller.postVars('amengine.aspx', q, null, _callback, false, objID);
 		}else{
 			ajaxCaller.postVars('amengine.aspx', q, null, returnContents, false, objID);
 		}

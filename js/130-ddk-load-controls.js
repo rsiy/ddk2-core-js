@@ -140,10 +140,10 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 			return value.split("=");
 		}));
 
-    var newKeys = _.zipObject(_.map(controlData.keywords ? controlData.keywords.split("&") : [], function (value) {
-      var pair = value.split("=");
-      return [ pair[0], decodeURIComponent(pair[1]) ];
-    }));
+		var newKeys = _.zipObject(_.map(controlData.keywords ? controlData.keywords.split("&") : [], function (value) {
+		  var pair = value.split("=");
+		  return [ pair[0], decodeURIComponent(pair[1]) ];
+		}));
 
 		K("s_" + controlId + "_keywords", _.reduce(_.extend({}, oldKeys, newKeys), function (memo, value, key) {
 			return memo + (key ? "&" + key + "=" + (value ? encodeURIComponent(value) : "") : "");
@@ -162,7 +162,10 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 			if (typeof callback === "function") {
 				callback(controlName, controlId);
 			}
-		}, { stateFilter: "s_" + controlId + "_" });
+		}, { 
+			stateFilter: "s_" + controlId + "_",
+			requireAsync: (_.indexOf(["scorecard", "scorecard2", "table", "tree", "bamset"], controlName) > -1)
+		});
 	} else {
 		DDK.warn(controlTitle + " Control Reload: " + controlId + " not found.");
 	}
