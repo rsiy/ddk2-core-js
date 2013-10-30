@@ -903,5 +903,5 @@
   // Integrate with Underscore.js if defined
   // or create our own underscore object.
   root._ = root._ || {};
-  root._.string = root._.str = _s;
+  root._.string = _s;
 }(this, String);

@@ -20377,7 +20377,6 @@ xReq =null;
 					});
 				};
 			} else {
-				console.log("no Async");
 				_callback = function (data, header, id) {
 					hideMask(id);
 					$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
