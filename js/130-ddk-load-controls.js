@@ -164,7 +164,7 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 			}
 		}, { 
 			stateFilter: "s_" + controlId + "_",
-			requireAsync: (_.indexOf(["scorecard", "scorecard2", "table", "tree", "bamset"], controlName) > -1)
+			defer: (_.indexOf(["scorecard", "scorecard2", "table", "tree", "bamset"], controlName) > -1)
 		});
 	} else {
 		DDK.warn(controlTitle + " Control Reload: " + controlId + " not found.");

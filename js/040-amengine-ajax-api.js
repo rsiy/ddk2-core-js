@@ -496,7 +496,7 @@ xReq =null;
 	function run(objID, metricname, callback, options) {	
         if (typeof callback === "function") {
             var _callback;
-			if (options && options.requireAsync) {
+			if (options && options.defer) {
 				_callback = function (data, header, id) {
 					DDK.asyncScriptLoad.done(function () {
 						hideMask(id);
