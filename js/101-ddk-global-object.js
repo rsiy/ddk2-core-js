@@ -300,7 +300,7 @@
 
 		function loadFavorite(name, id, fav) {
 			if (fav && fav.value) {
-				fnKeywordFlush("s_" + id + "_");
+				K.flush("s_" + id + "_");
 				K(fav.value);
 				K({
 					fid: fav.id,
