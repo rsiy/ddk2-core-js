@@ -3,7 +3,7 @@
 // started as a fork of Underscore.string version 2.3.0
 // (c) 2010 Esa-Matti Suuronen <esa-matti aet suuronen dot org>
 // https://github.com/epeli/underscore.string
-function(root, String){
+(function(root, String){
   'use strict';
 
   // Defining helper functions.
@@ -692,4 +692,4 @@ function(root, String){
   
   // expose via _.string and _.str
   root._.string = root._.str = _s;
-}(this, String);
+})(this, String);
