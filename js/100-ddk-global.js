@@ -601,7 +601,7 @@
 
 	function fnResizeLayoutContent(iPane) {
 		if (aoAccordion[iPane] !== -1) {
-			aoAccordion[iPane].accordion('resize');
+			aoAccordion[iPane].accordion('refresh');
 			resizeContent(iPane, false, "accordion");
 			setTimeout(function() {
 				resizeContent(iPane, true, "accordion");
@@ -635,7 +635,7 @@
 		;
 
 		if (DDK.accordion[p] !== undefined && DDK.accordion[p][sec] !== undefined) {
-			DDK.accordion[p][sec].accordion('resize');
+			DDK.accordion[p][sec].accordion('refresh');
 			resizeContent(iPane, false, "accordion", sec);
 			setTimeout(function() {
 				resizeContent(iPane, true, "accordion", sec);
