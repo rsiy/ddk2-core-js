@@ -608,7 +608,7 @@
 				PSC_Layout_Pane_CustomResize(iPane);
 			}, 100);
 		} else if (aoTabs[iPane] !== -1) {
-			/* there is no tabs resize function */
+			aoTabs[iPane].tabs('refresh');
 			resizeContent(iPane, false, "tabs");
 			setTimeout(function() {
 				resizeContent(iPane, true, "tabs");
@@ -643,7 +643,7 @@
 			}, 100);
 
 		} else if (DDK.tabs[p] !== undefined && DDK.tabs[p][sec] !== undefined) {
-			/* there is no tabs resize function */
+			DDK.tabs[p][sec].tabs('refresh');
 			resizeContent(iPane, false, "tabs", sec);
 			setTimeout(function() {
 				resizeContent(iPane, true, "tabs", sec);
