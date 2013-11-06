@@ -11991,7 +11991,7 @@ $.widget( "ui.tabs", {
 
 				this.panels.each(function() {
 					$( this ).height( maxHeight );
-				});			
+				});
 			} else {
 				maxHeight = parent.height();
 				maxHeight -= this.element.outerHeight() - this.element.height();
