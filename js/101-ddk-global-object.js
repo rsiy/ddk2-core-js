@@ -1557,6 +1557,47 @@
 			;
 
 		}
+		
+		function makeDialog2($elem, settings) {
+			var $dialog;
+			
+			settings = _.extend({
+				title: ""
+			}, settings.defaults);
+			
+			$dialog = $("<div>" + settings.content + "</div>");
+			
+			return $dialog.dialog(settings.passthrough);
+		}		
+		
+		function dialog2(e) {
+			var $this = $(this),
+				data = $this.data(),
+				dialog = data.dialog,
+				$dialog = data.$dialog,
+				settings = DDK.dialogs[dialog];
+			
+			// dialog2 settings are an object
+			// {
+			// 		content: ..., // html content to be rendered in dialog body
+			//		defaults: {}, // default settings passed to dialog creation function
+			//		passthrough: {} // settings passed into $.fn.dialog()
+			// }
+
+			if (!$dialog) {
+				// create a new dialog
+				$dialog = makeDialog2($this, settings)
+				
+				// cache a reference to the new dialog
+				$this.data("$dialog", $dialog);
+			}
+			
+			if ($dialog.dialog("isOpen")) {
+				$dialog.dialog("moveToTop");
+			} else {
+				$dialog.dialog("open");
+			}
+		}
 
 		function dialog(e) {
 			var $this = $(this),
@@ -1979,6 +2020,7 @@
 			loadControls: loadControls,
 			pdfGo: pdfGo,
 			dialog: dialog,
+			dialog2: dialog2,
 			mouseover: mouseover,
 			writeFavoriteChanges: writeFavoriteChanges,
 			template: {},
