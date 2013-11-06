@@ -11978,31 +11978,44 @@ $.widget( "ui.tabs", {
 
 	_setupHeightStyle: function( heightStyle ) {
 		var maxHeight,
-			parent = this.element.parent();
+			parent = this.element.parent(),
+			panelsParent = this.panels.eq(0).parent();
 
 		if ( heightStyle === "fill" ) {
-			maxHeight = parent.height();
-			maxHeight -= this.element.outerHeight() - this.element.height();
+			if (parent.get()[0] !== panelsParent.get()[0]) {
+				maxHeight = panelsParent.innerHeight();
 
-			this.element.siblings( ":visible" ).each(function() {
-				var elem = $( this ),
-					position = elem.css( "position" );
+				panelsParent.children().not( this.panels ).each(function() {
+					maxHeight -= $( this ).outerHeight( true );
+				});
 
-				if ( position === "absolute" || position === "fixed" ) {
-					return;
-				}
-				maxHeight -= elem.outerHeight( true );
-			});
+				this.panels.each(function() {
+					$( this ).height( maxHeight );
+				});			
+			} else {
+				maxHeight = parent.height();
+				maxHeight -= this.element.outerHeight() - this.element.height();
 
-			this.element.children().not( this.panels ).each(function() {
-				maxHeight -= $( this ).outerHeight( true );
-			});
+				this.element.siblings( ":visible" ).each(function() {
+					var elem = $( this ),
+						position = elem.css( "position" );
 
-			this.panels.each(function() {
-				$( this ).height( Math.max( 0, maxHeight -
-					$( this ).innerHeight() + $( this ).height() ) );
-			})
-			.css( "overflow", "auto" );
+					if ( position === "absolute" || position === "fixed" ) {
+						return;
+					}
+					maxHeight -= elem.outerHeight( true );
+				});
+
+				this.element.children().not( this.panels ).each(function() {
+					maxHeight -= $( this ).outerHeight( true );
+				});
+
+				this.panels.each(function() {
+					$( this ).height( Math.max( 0, maxHeight -
+						$( this ).innerHeight() + $( this ).height() ) );
+				})
+				.css( "overflow", "auto" );
+			}
 		} else if ( heightStyle === "auto" ) {
 			maxHeight = 0;
 			this.panels.each(function() {
