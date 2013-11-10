@@ -496,9 +496,9 @@ xReq =null;
 	function run(objID, metricname, callback, options) {	
         if (typeof callback === "function") {
             var _callback;
-			if (options && options.defer) {
+			if (options && options.defer !== false) {
 				_callback = function (data, header, id) {
-					DDK.asyncScriptLoad.done(function () {
+					DDK.defer(function () {
 						hideMask(id);
 						$("#"+id).empty().html(data).find('input[placeholder], textarea[placeholder]').placeholder();
 						callback(data, header, id);

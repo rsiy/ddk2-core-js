@@ -163,8 +163,7 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 				callback(controlName, controlId);
 			}
 		}, { 
-			stateFilter: "s_" + controlId + "_",
-			defer: (_.indexOf(["scorecard", "scorecard2", "table", "tree", "bamset"], controlName) > -1)
+			stateFilter: "s_" + controlId + "_"
 		});
 	} else {
 		DDK.warn(controlTitle + " Control Reload: " + controlId + " not found.");
