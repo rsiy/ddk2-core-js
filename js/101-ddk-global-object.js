@@ -2120,6 +2120,7 @@
 				hide: dropdownHide
 			},
 			eventHandler: eventHandler,
+			help: {},
 			validate: validate,
 			accordion: {
 				center: {},

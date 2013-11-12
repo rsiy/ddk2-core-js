@@ -496,7 +496,7 @@ xReq =null;
 	function run(objID, metricname, callback, options) {	
         if (typeof callback === "function") {
             var _callback;
-			if (options && options.defer !== false) {
+			if (!options || options.defer !== false) {
 				_callback = function (data, header, id) {
 					DDK.defer(function () {
 						hideMask(id);

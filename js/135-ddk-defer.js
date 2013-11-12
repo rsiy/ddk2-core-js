@@ -1,1 +1,1 @@
-DDK.defer = function (func) {	_.defer(DDK.asyncScriptLoad.done(func));};
+DDK.defer = function (func) {	_.defer(function () { DDK.asyncScriptLoad.done(func); });};
