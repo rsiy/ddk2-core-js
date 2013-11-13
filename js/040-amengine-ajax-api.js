@@ -643,8 +643,11 @@ xReq =null;
 			if (options && options.stateFilter) {
 				// if there is a stateFilter
 				// fitler the global hash to remove state keywords that don't match the filter
+				// and lowerCase the state filter because the daaHash enforces lowerCase keyword keys
 				// while we're at it, trim off the `sec.` keywords as well
-				url += _.reduce(_.omit(K.toObject(), function (value, key) { return _.string.startsWith(key, "sec.") || (_.string.startsWith(key, "s_") && !_.string.startsWith(key, options.stateFilter)); }), function (memo, value, key) {
+				url += _.reduce(_.omit(K.toObject(), function (value, key) { 
+					return _.string.startsWith(key, "sec.") || (_.string.startsWith(key, "s_") && !_.string.startsWith(key, options.stateFilter.toLowerCase())); 
+				}), function (memo, value, key) {
 					return memo + "&" + key + "=" + encodeURIComponent(value);
 				}, "");
 			} else {
