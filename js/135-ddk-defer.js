@@ -1,1 +1,1 @@
-DDK.defer = function (func) {	_.defer(function () { DDK.asyncScriptLoad.done(func); });};
+DDK.asyncScriptLoad = jQuery.Deferred().done(function () { DDK.info("DDK Async Script Loaded"); });DDK.defer = function (func) {	_.defer(function () { DDK.asyncScriptLoad.done(func); });};
