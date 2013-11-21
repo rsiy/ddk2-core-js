@@ -1841,15 +1841,10 @@
 			var $this = $(this),
 				data = $this.data(),
 				buttonAction = data.ddkButtonAction,
-				$control = $(e.currentTarget).closest("div[id^=\"psc_\"][id$=\"_widget\"]"),
-				idParts = $control.attr("id").split("_"),
-				name = idParts[1],
-				id = idParts[2];
+				$control = $(e.currentTarget).parentControl(),
+				controlData = $control.controlData();
 
-			$.extend(true, data, {
-				id: id,
-				name: name,
-				$control: $control,
+			$.extend(true, data, controlData, {
 				$this: $this
 			});
 			DDK.eventHandler[buttonAction](e, data);

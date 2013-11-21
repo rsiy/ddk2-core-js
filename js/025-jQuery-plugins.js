@@ -42,7 +42,7 @@
 			if (elemIdParts[0] !== "psc" || elemIdParts[3] !== "widget" || !id || !name ) { return null; }
 			
 			return $.extend(true,
-				{ id: id, name: name },
+				{ id: id, name: name, $control: $elem },
 				$elem.find("#psc_" + name + "_data_" + id).data(),
 				$elem.find("[data-ddk-metrics]").data()
 			);
