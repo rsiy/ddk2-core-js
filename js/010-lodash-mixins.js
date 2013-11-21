@@ -133,6 +133,22 @@
 			});
 			
 			return object;
+		},
+		
+		isRealNumber: function(num) {
+			var n = +num;
+			
+			if (num == null) { return false; }
+			
+			return !isNaN(n) && isFinite(n);
+		},
+		
+		isPositiveInteger: function(num) {
+			var n = +num;
+
+			if (num == null) { return false; }
+
+			return !isNaN(n) && (Math.floor(n) === n) && n > 0;
 		}
 	});
 })(this);
