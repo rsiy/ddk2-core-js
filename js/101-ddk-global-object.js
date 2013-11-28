@@ -795,6 +795,7 @@
 				fmt = $data.data('fmt'),
 				qm = $data.data('qm') || "",
 				sv = ($data.data('sv')? $data.data('sv').split("^") : ["'0','asc'"]),
+				keywords = $widget.data("keywords"),
 				//sv = $data.data('sv') || ["'0','asc'"],
 				sort = [],
 				sortFav = (K("s_" + id + "_tsort")? K("s_" + id + "_tsort").split("^") : undefined),
@@ -827,7 +828,8 @@
 				, "fnServerData": function ( url, data, callback, settings ) {
 					data.push({name: "table_metrics_static", value: ms});
 					data.push({name: "table_metrics_dynamic", value: md});
-					K($widget.data("keywords"));
+					data.push({name: "table_keywords", value: keywords});
+					//K($widget.data("keywords"));
 					_.each(K.toObject(["v_", "p_"]), function (value, key) {
 						data.push({ name: key, value: value });
 					});
