@@ -52,6 +52,94 @@
 		if (ret.length === 1) { return ret[0]; }
 		return ret;
 	};
+	
+	/* $.fn.dataStack jQuery plugin
+	 * Returns an object containing the merged data objects from an element and all its parents. Data defined on the element itself will have highest priority.
+	 * by: jsmreese
+	 */
+	 $.fn.dataStack = function () {
+		return $.extend.apply(null, [{}].concat(this.parents().addBack().map(function (index, elem) {
+			return $(elem).data();
+		}).get()));
+	};
+	
+	/* $.fn.editor jQuery plugin
+	 * Creates a CodeMirror editor from a textarea. Initial version only supports JSON content.
+	 * by: jsmreese
+	 */
+	 $.fn.editor = function (settings) {
+		var elem = this.get(0),
+			editor,
+			waiting,
+			messages = [],
+			settings = $.extend(true, {}, $.fn.editor.defaults, settings),
+			messageTemplate = _.template(settings.messageTemplate),
+			JSHINT = window.JSHINT || null,
+			updateHints = function () {
+				editor.operation(function () {
+					var errors;
+					
+					// clear messages
+					_.each(messages, editor.removeLineWidget);
+					messages.length = 0;
+
+					// lint value
+					JSHINT(editor.getValue());
+					
+					// create messages for errors
+					_.each(JSHINT.errors, function (err, index) {
+						if (settings.messageCount && index === settings.messageCount) {
+							return false;
+						}
+						messages.push(editor.addLineWidget(err.line - 1, $(messageTemplate(err)).get(0), settings.messageSettings));
+					});
+				});
+			};
+			
+		// allow setting language via data-language
+		settings.language = $.data(elem, "language") || settings.language;
+
+		// handle JSON language
+		if (settings.language === "json") {
+			settings.editorSettings.mode = {
+				name: "javascript",
+				json: true
+			};
+		}
+		editor = CodeMirror.fromTextArea(elem, settings.editorSettings);
+		
+		editor.on("blur", function (){
+			editor.save();
+		});
+
+		if (JSHINT) {
+			editor.on("change", function () {
+				clearTimeout(waiting);
+				waiting = setTimeout(updateHints, 500);
+			});
+
+			setTimeout(updateHints, 100);
+		}
+		
+		$.data(elem, "editor", editor);
+	
+		return this;
+	};
+	
+	$.fn.editor.defaults = {
+		language: "json",
+		messageCount: 1,
+		messageTemplate: "<div class=\"lint-error\"><%= reason %></div>",
+		messageSettings: {
+			coverGutter: false,
+			noHScroll: true
+		},
+		editorSettings: {
+			indentUnit: 4,
+			indentWithTabs: true,
+			lineNumbers: true
+		}
+	};
 })(this);
 
 /*! http://mths.be/placeholder v2.0.7 by @mathias */

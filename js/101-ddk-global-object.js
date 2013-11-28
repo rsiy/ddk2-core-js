@@ -2011,7 +2011,7 @@
 			updateFavoriteValue: updateFavoriteValue,
 			displayDialog: displayDialog,
 			initColorPicker: initColorPicker,
-			format: formatSpans,
+			//format: formatSpans,
 			loadControls: loadControls,
 			pdfGo: pdfGo,
 			dialog: dialog,
@@ -2352,3 +2352,64 @@
 			reload: PSC_Bamset_Reload
 		}
 	});
+
+	// selector can be an element id, a selector string, a jQuery collection
+	// a DOM element, or a DDK control id
+	DDK.format = function (selector) {
+		var $selection;
+			
+		if (typeof selector === "string") {	
+			$selection = $("[id^=\"psc_\"][id$=\"" + selector + "_widget\"]");
+			
+			if (!$selection.length) {
+				$selection = $("#" + selector);
+			}
+		}
+
+		if (!$selection || !$selection.length) {
+			$selection = $(selector);
+		}
+
+		// excute DDK1 formatting
+		$selection.find("span[data-format]:visible").each(function() {
+			var $this = $(this),
+				formatOptions = $this.data("format"),
+				formatType = (formatOptions.type || formatOptions); // support initial prototype API of data-format="formatType" as well as new API of data-format="{...JSON String...}"
+
+			if (typeof DDK.format[formatType] === "function") {
+				DDK.format[formatType]($this, formatOptions);
+				DDK.log("DDK.format (DDK1)", selector, $this[0], formatType, formatOptions);
+				$this.removeAttr("data-format");
+			}
+		});
+		
+		// execute DDK2 formatting
+		$selection.find("[data-format]:visible").each(function() {
+			var $this = $(this),
+				formatter = new PS.Formatter($this);
+			
+			formatter.exec();
+		});
+/*
+		$selection.find("[data-format]:visible").each(function() {
+			var $this = $(this),
+				data = $this.dataStack(),
+				formatObject = _.find(DDK.format.plugins, { id: data.format }),
+				formatter = formatObject.formatter;
+				
+			if (typeof formatter === "function") {
+				formattedValue = formatter(data, $this);
+				if (formattedValue) {
+					$this.html(formattedValue);
+				}
+				$this.removeAttr("data-format");
+			}
+		});
+*/
+	};
+
+	DDK.format.typeMap = {
+		"int": "number",
+		"float": "number",
+		"text": "text"
+	};
