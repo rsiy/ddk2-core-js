@@ -275,8 +275,24 @@
       return _s.trim(str).replace(/([A-Z])/g, '-$1').replace(/[-_\s]+/g, '-').toLowerCase();
     },
 
-    classify: function(str){
-      return _s.titleize(String(str).replace(/[\W_]/g, ' ')).replace(/\s/g, '');
+	// modified from original behaviour
+	// Will convert any string into a class-safe name
+	// Must start with a dash or lowercase letter
+	// Can contain only dashes, lowercase letters, or numbers
+	// Boolean isFragment will allow class fragment to begin with a number
+    classify: function(str, isFragment) {
+		if (str == null) { return ""; }
+
+		// lowercase
+		// replace all non-letters/numbers with dashes
+		// only one dash at a time
+		str = str.toLowerCase().replace(/[^a-z0-9\-]/g, "-").replace(/\-+/g, "-");
+
+		if (!isFragment && /^[0-9]/.test(str)) {
+			str = "-" + str;
+		}
+		
+		return str;
     },
 
     humanize: function(str){
