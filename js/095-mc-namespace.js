@@ -270,8 +270,9 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 			if (_.isString(configValue)) {
 				// any value of type string
 				// is added as an optionGroup model attribute
+				// optionGroup attributes are always underscored
 				DDK.log("    set optionGroup attribute: ", this.get("id"), "(" + this.cid + ")", "-->", configKey, ":", configValue);
-				this.set(configKey, configValue);
+				this.set(_.string.underscored(configKey), configValue);
 				return;
 			}
 			
@@ -335,7 +336,10 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		_.each(config, function (configValue, configKey) {
 			var model,
 				// construct option configuration object from the key/value pair if not isDeep
-				optionConfig = isDeep ? configValue : { id: configKey, value: configValue };
+				// option ids are always underscored
+				optionConfig = isDeep ? _.transform(configValue, function (accumulator, value, key) {
+					accumulator[_.string.underscored(key)] = value;
+				}, {}): { id: _.string.underscored(configKey), value: configValue };
 
 			// first check for an option model with this id within this optionGroup
 			model = this.collections.options.get(optionConfig.id);
@@ -363,7 +367,10 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		//DDK.log("  PS.MC.Models.OptionGroup.getOptionGroup()", id, this.id);
 		
 		var model;
-		
+
+		// optionGroup ids are always underscored
+		id = _.string.underscored(id);
+				
 		// return this optionGroup model if it has the id
 		if (id === this.id) {
 			return this;
@@ -388,6 +395,9 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		//DDK.log("  PS.MC.Models.OptionGroup.getOption()", id, this.id);
 
 		var model;
+		
+		// option ids are always underscored
+		id = _.string.underscored(id);
 		
 		// check this optionGroup's options collection for the id
 		this.collections.options.each(function (option) {
@@ -423,8 +433,7 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 	// setter for option values with optional prefix
 	// 
 	// future version could add additional signatures
-	// to follow the same id/value/prefix rules established with K
-	// val(id [, value] [, prefix])
+	// to follow the same id/value/prefix rules established with K: val(id [, value] [, prefix])
 	val: function (id, value) {
 		//DDK.log("  PS.MC.Models.OptionGroup.val()", id, value);
 		
@@ -482,6 +491,12 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 	},
 
 	// Methods for bulk-getting option values
+	// toCamelizedObject([settings])		
+	toCamelizedObject: function (settings) {
+		return _.zipObject(_.map(this.reduce(settings), function (pair) {
+			return [_.string.camelize(pair[0]), pair[1]];
+		}));	
+	},
 
 	// toObject([settings])		
 	toObject: function (settings) {
@@ -490,8 +505,8 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 
 	// toURL([settings])		
 	toURL: function (settings) {
-		var output = _.map(this.reduce(settings), function (value) {
-			return encodeURIComponent(value[0]) + "=" + encodeURIComponent(value[1]);
+		var output = _.map(this.reduce(settings), function (pair) {
+			return encodeURIComponent(pair[0]) + "=" + encodeURIComponent(pair[1]);
 		});
 
 		return output.length ? "&" + output.join("&") : "";
