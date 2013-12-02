@@ -175,12 +175,16 @@ PS.MC.Models.Record.FavoriteOrgRel = PS.MC.Models.Record.Base.extend({
 PS.extend("MC.Models");
 
 PS.MC.Models.OptionGroup = Backbone.Model.extend({
-	initialize: function (id) {
+	// OptionGroup models may be setup on instantiation by passing
+	// an OptionsAPI configuration object and possibly Options values to the constructor
+	// using the native Backbone.Model options argument
+	// eg. var optionGroup = new PS.MC.Models.OptionGroup(null, { setup: config, val: value });
+	initialize: function (attributes, options) {
 		// setup collections and models container objects
 		this.collections = {};
 		this.models = {};
 
-		// setup groups and options collections
+		// setup optionGroups and options collections
 		this.collections.optionGroups = new Backbone.Collection();
 		this.collections.options = new Backbone.Collection();
 		
@@ -198,6 +202,16 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		
 		// setup sync method
 		this.sync = _.delegator(this.syncMethods, "update", this);
+		
+		// call .setup()
+		if (options && options.setup) {
+			this.setup(options.setup);
+		}
+		
+		// call .val()
+		if (options && options.setup && options.val) {
+			this.val(options.val);
+		}
 	},
 
 	syncMethods: {
@@ -270,9 +284,8 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 			if (_.isString(configValue)) {
 				// any value of type string
 				// is added as an optionGroup model attribute
-				// optionGroup attributes are always underscored
 				DDK.log("    set optionGroup attribute: ", this.get("id"), "(" + this.cid + ")", "-->", configKey, ":", configValue);
-				this.set(_.string.underscored(configKey), configValue);
+				this.set(configKey, configValue);
 				return;
 			}
 			
@@ -283,6 +296,9 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 
 				// first check for an optionGroup model with this id
 				if (configValue.id) {
+					// optionGroup ids are always underscored
+					configValue.id = _.string.underscored(configValue.id);
+					
 					model = this.collections.optionGroups.get(configValue.id);
 				} else {
 					// any values of type object should have an id property
@@ -336,11 +352,11 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		_.each(config, function (configValue, configKey) {
 			var model,
 				// construct option configuration object from the key/value pair if not isDeep
-				// option ids are always underscored
-				optionConfig = isDeep ? _.transform(configValue, function (accumulator, value, key) {
-					accumulator[_.string.underscored(key)] = value;
-				}, {}): { id: _.string.underscored(configKey), value: configValue };
+				optionConfig = isDeep ? configValue : { id: configKey, value: configValue };
 
+			// option ids are always underscored
+			optionConfig.id = _.string.underscored(optionConfig.id)
+				
 			// first check for an option model with this id within this optionGroup
 			model = this.collections.options.get(optionConfig.id);
 			
