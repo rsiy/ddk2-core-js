@@ -36,16 +36,72 @@
 			var $elem = $(elem),
 				elemIdParts = elem.id.split("_"),
 				id = elemIdParts[2],
-				name = elemIdParts[1];
+				name = elemIdParts[1],
+				controlData;
 			
 			// return `null` for all non-DDK-control elements
 			if (elemIdParts[0] !== "psc" || elemIdParts[3] !== "widget" || !id || !name ) { return null; }
 			
-			return $.extend(true,
+			controlData = $.extend(true,
 				{ id: id, name: name, $control: $elem },
 				$elem.find("#psc_" + name + "_data_" + id).data(),
 				$elem.find("[data-ddk-metrics]").data()
 			);
+			
+			return $.extend(true, controlData, {
+				fields: _.map(_.pluck(controlData.ddkMetrics, "columnName"), function (name) {
+					return {
+						id: name.toUpperCase(),
+						text: _.string.titleize(name.replace(/^org/i, "organization").replace(/^loc/i, "location"))
+					};
+				}),
+				prefixes: _.map(_.uniq(_.pluck(controlData.ddkMetrics, "columnMetric")), function (prefix) {
+					var hasSequence = false,
+						hasTrend = false,
+						hasValue = false,
+						defaultSuffix = "",
+						lastSequence = "",
+						firstSuffix = "",
+						suffixes = _.map(_.filter(controlData.ddkMetrics, { columnMetric: prefix }).sort(function (a, b) {
+							return a.columnMetricAttr > b.columnMetricAttr;
+						}), function (column) {
+							var suffix = column.columnMetricAttr,
+								type = column.columnType;
+							
+							// columns associated with sequenced metric values ALWAYS end in a number (0-9)
+							hasSequence = hasSequence || suffix.match(/[0-9]$/);
+							hasTrend = hasTrend || (suffix === "TREND");
+							hasValue = hasValue || (suffix === "VALUE");
+							lastSequence = (suffix.match(/[0-9]$/) ? suffix : lastSequence);
+							firstSuffix = firstSuffix || suffix;
+								
+							return { id: "%{" + suffix + "}%", text: _.string.titleize(suffix), type: type };
+						});
+					
+					// sequenced metric values can show a trend and rtrend suffix
+					if (hasSequence) {
+						if (!hasTrend) {
+							suffixes.push({ id: "%{TREND}%", text: "Trend", type: "text" });
+						}
+						suffixes.push({ id: "%{RTREND}%", text: "Reverse Trend", type: "text" });
+					}
+					
+					if (hasValue) {
+						defaultSuffix = "%{VALUE}%";
+					} else if (lastSequence) {
+						defaultSuffix = "%{" + lastSequence + "}%";
+					} else {
+						defaultSuffix = "%{" + firstSuffix + "}%";
+					}
+				
+					return {
+						id: prefix,
+						text: _.string.titleize(prefix.replace(/^org/i, "organization").replace(/^loc/i, "location")),
+						suffixes: suffixes,
+						defaultSuffix: defaultSuffix
+					};
+				})
+			});
 		}));
 		
 		if (!ret.length) { return null; };
