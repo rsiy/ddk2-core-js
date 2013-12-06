@@ -37,7 +37,8 @@
 				elemIdParts = elem.id.split("_"),
 				id = elemIdParts[2],
 				name = elemIdParts[1],
-				controlData;
+				controlData,
+				prefixes;
 			
 			// return `null` for all non-DDK-control elements
 			if (elemIdParts[0] !== "psc" || elemIdParts[3] !== "widget" || !id || !name ) { return null; }
@@ -48,6 +49,8 @@
 				$elem.find("[data-ddk-metrics]").data()
 			);
 			
+			prefixes = _.uniq(_.pluck(controlData.ddkMetrics, "columnMetric"));
+			
 			return $.extend(true, controlData, {
 				fields: _.map(_.pluck(controlData.ddkMetrics, "columnName"), function (name) {
 					return {
@@ -55,7 +58,8 @@
 						text: _.string.titleize(name.replace(/^org/i, "organization").replace(/^loc/i, "location"))
 					};
 				}),
-				prefixes: _.map(_.uniq(_.pluck(controlData.ddkMetrics, "columnMetric")), function (prefix) {
+				defaultPrefix: (_.indexOf(prefixes, "METRIC") > -1 ? "METRIC" : prefixes[0]),
+				prefixes: _.map(prefixes, function (prefix) {
 					var hasSequence = false,
 						hasTrend = false,
 						hasValue = false,
