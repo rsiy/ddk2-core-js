@@ -35,60 +35,58 @@ PS.Formatter = function (el) {
 	this.exec = exec;
 };
 
-PS.Formatter.list = [];
+// create a jQuery-esque reference to the PS.Formatter prototype
+PS.Formatter.fn = PS.Formatter.prototype;
+
+// default formatter functions
+PS.Formatter.fn.text = function () {
+	return _.escape(this.formatValue);
+};
+
+PS.Formatter.fn.html = function () {
+	return this.formatValue;
+};
+
+PS.Formatter.fn.number = function () {
+	var num = +this.formatValue,
+		isNum = !(num == null || isNaN(num)),
+		precision = (this.formatPrecision != null ? this.formatPrecision : this.number.defaults.precision);
+		
+	if (!isNum) {
+		return "&nbsp;"
+	}
+	
+	if (num === 0) {
+		return "-";
+	}
+	
+	return numeral(num).format("0,0" + (precision ? "." + _.string.repeat("0", precision) : ""));
+};
+
+
+// formats array to be used as a datasource for UI (structured for Select2)
+PS.Formatter.formats = [];
+
+// register method for adding formats to the formats array
 PS.Formatter.register = function(settings) {
-	PS.Formatter.list.push({
+	// verify that the format function exists
+	if (typeof PS.Formatter.fn[settings.id] !== "function") {
+		DDK.error("Unable to register formatter. `PS.Formatter.fn." + settings.id + "` is not a function.");
+		return;
+	}
+	
+	// add format to the formats array
+	PS.Formatter.formats.push({
 		id: settings.id,
 		text: settings.text,
 		sortOrder: settings.sortOrder
 	});
 	
-	PS.Formatter.list.sort(function (a, b) {
+	// sort formats array
+	PS.Formatter.formats.sort(function (a, b) {
 		return a.sortOrder - b.sortOrder;
 	});
 	
-	PS.Formatter.prototype[settings.id] = settings.formatter;
-	PS.Formatter.prototype[settings.id].defaults = settings.defaults || {};		
+	// add defaults to the formatter function
+	PS.Formatter.fn[settings.id].defaults = settings.defaults || {};		
 };
-
-PS.Formatter.register({
-	id: "text",
-	text: "Text",
-	sortOrder: 10,
-	formatter: function () {
-		return _.escape(this.formatValue);
-	}
-});
-
-PS.Formatter.register({
-	id: "html",
-	text: "HTML",
-	sortOrder: 100,
-	formatter: function () {
-		return this.formatValue;
-	}
-});
-
-PS.Formatter.register({
-	id: "number",
-	text: "Number",
-	sortOrder: 20,
-	defaults: {
-		precision: 0
-	},
-	formatter: function () {
-		var num = +this.formatValue,
-			isNum = !(num == null || isNaN(num)),
-			precision = (this.formatPrecision != null ? this.formatPrecision : this.number.defaults.precision);
-			
-		if (!isNum) {
-			return "&nbsp;"
-		}
-		
-		if (num === 0) {
-			return "-";
-		}
-		
-		return numeral(num).format("0,0" + (precision ? "." + _.string.repeat("0", precision) : ""));
-	}
-});
