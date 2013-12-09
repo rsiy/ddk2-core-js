@@ -35,7 +35,11 @@ PS.Formatter = function (el) {
 	this.exec = exec;
 };
 
+// create a jQuery-esque reference to the PS.Formatter prototype
 PS.Formatter.fn = PS.Formatter.prototype;
+
+// formats array to be used as a datasource for UI (structured for Select2)
+PS.Formatter.formats = [];
 
 // register method for adding formats to the formats array
 PS.Formatter.register = function(settings) {
@@ -103,6 +107,15 @@ PS.Formatter.fn.defaults = {
 	arrowTemplate: "<span class=\"format-arrow ddk-icon\"><%= arrow %></span>",
 	bulbTemplate: "<span class=\"format-bulb ddk-icon\"><%= bulb %></span>",
 	orientation: 1
+};
+
+// default formatter functions
+PS.Formatter.fn.text = function () {
+	return _.escape(this.formatValue);
+};
+
+PS.Formatter.fn.html = function () {
+	return this.formatValue;
 };
 
 PS.Formatter.fn.number = function () {
@@ -185,7 +198,6 @@ PS.Formatter.fn.time = function () {
 	return numeral(num).format("0,0" + (settings.precision ? "." + _.string.repeat("0", settings.precision) : "")) + settings.units;
 };
 
-
 PS.Formatter.fn.arrow = function () {
 	var num = +this.formatValue,
 		isNum = !(num == null || isNaN(num)),
@@ -219,3 +231,4 @@ PS.Formatter.fn.bulb = function () {
 	
 	return settings.bulb;
 };
+
