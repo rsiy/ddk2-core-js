@@ -119,6 +119,7 @@
 		}).get()));
 	};
 	
+
 	/* $.fn.editor jQuery plugin
 	 * Creates a CodeMirror editor from a textarea. Initial version only supports JSON content.
 	 * by: jsmreese
@@ -130,6 +131,7 @@
 			messages = [],
 			settings = $.extend(true, {}, $.fn.editor.defaults, settings),
 			messageTemplate = _.template(settings.messageTemplate),
+			optionHelpTemplate = _.template(settings.optionHelpTemplate),
 			JSHINT = window.JSHINT || null,
 			updateHints = function () {
 				editor.operation(function () {
@@ -147,9 +149,46 @@
 						if (settings.messageCount && index === settings.messageCount) {
 							return false;
 						}
-						messages.push(editor.addLineWidget(err.line - 1, $(messageTemplate(err)).get(0), settings.messageSettings));
+						messages.push(editor.addLineWidget(err.line - 1, $(messageTemplate(_.extend({}, _.string, err))).get(0), settings.messageSettings));
 					});
 				});
+			},
+			updateHelp = function () {
+				editor.operation(function () {
+					var props,
+						optionGroups = [].concat(settings.optionGroupModel),
+						options = _.flatten(_.map(optionGroups, function (optionGroup) {
+							return optionGroup.reduce(function (optionModel, accumulator) {
+								accumulator.push({ id: optionModel.get("id"), label: optionModel.get("label"), description: optionModel.get("description"), notes: optionModel.get("notes") });
+							}, { includeEmpty: true });
+						}));
+					
+					// clear options help markers
+					editor.clearGutter("CodeMirror-options-help");
+
+					// search editor for known properties
+					props = _.each(_.range(0, editor.doc.lineCount()), function (lineNumber) {
+						var lineInfo = editor.lineInfo(lineNumber),
+							match = lineInfo.text.match(/^[ \t]*"[a-zA-Z]+":/),
+							prop = match && match[0] && _.string.underscored(match[0].replace(/[^a-zA-Z]/g, "")),
+							option = _.find(options, { id: prop}),
+							helpMarker;
+						
+						// if no option match is found, do nothing
+						if (!option) {
+							return;
+						}
+						
+						// if a known property is found, create a help marker for it
+						helpMarker = $(optionHelpTemplate(_.extend({}, _.string, lineInfo, option))).get(0);
+						editor.setGutterMarker(lineInfo.line, "CodeMirror-options-help", helpMarker);
+
+					});
+				});
+			},
+			updateMarkers = function () {
+				JSHINT && updateHints();
+				settings.optionGroupModel && updateHelp();
 			};
 			
 		// allow setting language via data-language
@@ -161,21 +200,24 @@
 				name: "javascript",
 				json: true
 			};
+			
+			if (settings.optionGroupModel) {
+				settings.editorSettings.gutters = ["CodeMirror-options-help"];
+			}
 		}
-		editor = CodeMirror.fromTextArea(elem, settings.editorSettings);
 		
+		editor = CodeMirror.fromTextArea(elem, settings.editorSettings);
+				
 		editor.on("blur", function (){
 			editor.save();
 		});
 
-		if (JSHINT) {
-			editor.on("change", function () {
-				clearTimeout(waiting);
-				waiting = setTimeout(updateHints, 500);
-			});
+		editor.on("change", function () {
+			clearTimeout(waiting);
+			waiting = setTimeout(updateMarkers, 500);
+		});
 
-			setTimeout(updateHints, 100);
-		}
+		setTimeout(updateMarkers, 100);
 		
 		$.data(elem, "editor", editor);
 	
@@ -194,8 +236,11 @@
 			indentUnit: 4,
 			indentWithTabs: true,
 			lineNumbers: true
-		}
+		},
+		optionGroupModel: null,
+		optionHelpTemplate: "<span class=\"editor-option-help\" title=\"<%= camelize(id) %> (line <%= 1 + line %>)\n\n<%= label %>\n\n<%= description %>\n<%= notes %>\">?</span>"
 	};
+	
 })(this);
 
 /*! http://mths.be/placeholder v2.0.7 by @mathias */
