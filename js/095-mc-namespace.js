@@ -175,10 +175,6 @@ PS.MC.Models.Record.FavoriteOrgRel = PS.MC.Models.Record.Base.extend({
 PS.extend("MC.Models");
 
 PS.MC.Models.OptionGroup = Backbone.Model.extend({
-	// OptionGroup models may be setup on instantiation by passing
-	// an OptionsAPI configuration object and possibly Options values to the constructor
-	// using the native Backbone.Model options argument
-	// eg. var optionGroup = new PS.MC.Models.OptionGroup(null, { setup: config, val: value });
 	initialize: function (attributes, options) {
 		// setup collections and models container objects
 		this.collections = {};
@@ -202,16 +198,6 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		
 		// setup sync method
 		this.sync = _.delegator(this.syncMethods, "update", this);
-		
-		// call .setup()
-		if (options && options.setup) {
-			this.setup(options.setup);
-		}
-		
-		// call .val()
-		if (options && options.setup && options.val) {
-			this.val(options.val);
-		}
 	},
 
 	syncMethods: {
@@ -503,7 +489,7 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 	// clears data from options
 	// the "value" attributes on all option models will be set to ""
 	clear: function (settings) {
-		this.reduce(settings, function () { this.set("value", ""); });
+		this.reduce(function (optionModel) { optionModel.set("value", ""); }, settings);
 	},
 
 	// Methods for bulk-getting option values
@@ -534,8 +520,11 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 	},
 
 
-	// reduce(settings [, iterator])
+	// reduce([iterator] [, settings])
 	// general-purpose options iterator
+	//
+	// To use a more general form, all arguments must be specified in place:
+	// reduce(iterator, settings, accumulator, thisArg, isInitialized)
 	//
 	// use for iterating over all options contained in an optionGroup
 	// and all options contained in all sub optionGroups
@@ -547,7 +536,11 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 	// with an accumulator array as the single argument
 	//
 	// accumulator and isInitalized arguments are used internally for recursive reduce calls to nested optionGroups
-	reduce: function (settings, iterator, accumulator, isInitialized) {
+	reduce: function (iterator, settings, accumulator, thisArg, isInitialized) {
+		if (_.isPlainObject(iterator)) {
+			settings = iterator;
+			iterator = null;
+		}
 
 		// setup if isInitialized flag is not set
 		if (!isInitialized) {
@@ -561,13 +554,17 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 			}
 			
 			// default iterator builds an array of id/value pairs
-			iterator = _.wrap((typeof iterator === "function" ? iterator : function (accumulator) {
-				accumulator.push([this.id, this.get("value")]);
-			}), function (func, option) {
-				if (settings.test(option)) {
-					func.call(option, accumulator);
+			iterator = _.wrap((typeof iterator === "function" ? iterator : function (optionModel, accumulator) {
+				accumulator.push([optionModel.id, optionModel.get("value")]);
+			}), (thisArg ? function (func, optionModel) {
+				if (settings.test(optionModel)) {
+					func.call(thisArg, optionModel, accumulator);
 				}
-			});
+			} : function (func, optionModel) {
+				if (settings.test(optionModel)) {
+					func(optionModel, accumulator);
+				}
+			}));
 		}
 		
 		// iterate over options
@@ -575,10 +572,15 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 		
 		// iterate over options in sub optionGroups
 		this.collections.optionGroups.each(function (optionGroup) {
-			optionGroup.reduce(settings, iterator, accumulator, true);
+			optionGroup.reduce(iterator, settings, accumulator, thisArg, true);
 		});
 		
 		return accumulator;
+	},
+	
+	// each(iterator [, settings, thisArg])
+	each: function (iterator, settings, thisArg) {
+		this.reduce(iterator, settings, null, thisArg);
 	},
 
 
