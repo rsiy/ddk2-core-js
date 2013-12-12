@@ -267,8 +267,8 @@ PS.MC.Models.OptionGroup = Backbone.Model.extend({
 				return;
 			}
 			
-			if (_.isString(configValue)) {
-				// any value of type string
+			if (_.isString(configValue) || _.isNumber(configValue) || _.isBoolean(configValue)) {
+				// any value of type string, number, or boolean
 				// is added as an optionGroup model attribute
 				DDK.log("    set optionGroup attribute: ", this.get("id"), "(" + this.cid + ")", "-->", configKey, ":", configValue);
 				this.set(configKey, configValue);
