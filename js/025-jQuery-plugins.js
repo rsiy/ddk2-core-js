@@ -85,9 +85,9 @@
 					// sequenced metric values can show a trend and rtrend suffix
 					if (hasSequence) {
 						if (!hasTrend) {
-							suffixes.push({ id: "%{TREND}%", text: "Trend", type: "text" });
+							suffixes.push({ id: "%{TREND}%", text: "Trend", type: "trend" });
 						}
-						suffixes.push({ id: "%{RTREND}%", text: "Reverse Trend", type: "text" });
+						suffixes.push({ id: "%{RTREND}%", text: "Reverse Trend", type: "trend" });
 					}
 					
 					if (hasValue) {
