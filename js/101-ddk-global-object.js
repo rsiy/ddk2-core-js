@@ -774,6 +774,10 @@
 			DDK.scorecard2.resize(id);
 
 			DDK.control.init($control);
+			
+			if (!config.columns) {
+				$control.find("[data-ddk-button-action=\"sc2BuildColumns\"]").click();
+			}
 		}
 		
 		
