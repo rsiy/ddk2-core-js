@@ -171,6 +171,12 @@ _.each([
 		"description": "Classes rendered on each " + rowType.tagName + " element in each " + rowType.title + " row.",
 		"notes": ""
 	};
+	columnConfigOptions[rowType.id + "Colspan"] = {
+		"id": rowType.id + "_colspan",
+		"label": rowType.title + " Column Span",
+		"description": "Sets the colspan attribute on each " + rowType.tagName + " element in each " + rowType.title + " row.",
+		"notes": ""
+	};
 	
 	// column dialog
 	if (rowType.id !== "body") {
