@@ -41,6 +41,9 @@ PS.Formatter.fn = PS.Formatter.prototype;
 // formats array to be used as a datasource for UI (structured for Select2)
 PS.Formatter.formats = [];
 
+// database datatype to format type map
+PS.Formatter.typeMap = {};
+
 // register method for adding formats to the formats array
 PS.Formatter.register = function(settings) {
 	// verify that the format function exists
@@ -64,7 +67,19 @@ PS.Formatter.register = function(settings) {
 	});
 	
 	// add defaults to the formatter function
-	PS.Formatter.fn[settings.id].defaults = settings.defaults || {};		
+	PS.Formatter.fn[settings.id].defaults = settings.defaults || {};
+	
+	// extend type map
+	if (settings.datatype) {
+		_.each(settings.datatype.split(" "), function (datatype) {
+			PS.Formatter.typeMap[datatype] = settings.id;
+		});
+	}
+	
+	// set default format
+	if (!PS.Formatter.defaultFormat || settings.isDefaultFormat) {
+		PS.Formatter.defaultFormat = settings.id;
+	}
 };
 
 // register method for adding styles to the format styles array
@@ -91,12 +106,28 @@ PS.Formatter.registerStyle = function(settings) {
 };
 
 PS.Formatter.fn.getSettings = function () {
-	return _.extend({}, this.defaults, this[this.format].defaults, _.reduce(_.pick(this, function (value, key) {
-		return key !== "format" && _.string.startsWith(key, "format");
-	}), function (accumulator, value, key) {
-		accumulator[_.string.camelize(key.slice(6))] = value;
-		return accumulator;
-	}, {}));
+	return _.extend(
+		// start with an empty object
+		{},
+		
+		// add the global default format settings
+		this.defaults,
+		
+		// add the default format settings for this format
+		this[this.format].defaults,
+		
+		// add the default format settings from this format style
+		this[this.format][this.formatStyle],
+		
+		// override with any data-format attributes from the data stack
+		// remove the 'format' prefix and camelize the remaining name
+		_.reduce(_.pick(this, function (value, key) {
+			return key !== "format" && _.string.startsWith(key, "format");
+		}), function (accumulator, value, key) {
+			accumulator[_.string.camelize(key.slice(6))] = value;
+			return accumulator;
+		}, {})
+	);
 };
 
 PS.Formatter.fn.defaults = {
@@ -134,9 +165,7 @@ PS.Formatter.fn.number = function () {
 	if (settings.units) {
 		settings.units = _.template(settings.unitsTemplate, settings);
 	}
-	
-	console.log(settings);
-	
+		
 	return (settings.unitsPosition === "left" ? " " + settings.units : "") +
 		numeral(num).format("0,0" + (settings.precision ? "." + _.string.repeat("0", settings.precision) : "")) +
 		(settings.unitsPosition === "right" ? " " + settings.units : "");
@@ -160,42 +189,57 @@ PS.Formatter.fn.currency = function () {
 		settings.units = _.template(settings.unitsTemplate, settings);
 	}
 	
-	console.log(settings);
-	
 	return (settings.unitsPosition === "left" ? " " + settings.units : "") +
 		numeral(num).format("0,0" + (settings.precision ? "." + _.string.repeat("0", settings.precision) : "")) +
 		(settings.unitsPosition === "right" ? " " + settings.units : "");
 };
 
-PS.Formatter.fn.time = function () {
-	function padTwo(val) {
-		return val.toString().length > 1 ? val : "0" + val.toString();
+PS.Formatter.fn.date = function () {
+	var settings = this.getSettings(),
+		args = [this.formatValue],
+		mom;
+	
+	if (settings.units) {
+		args.push(settings.units);
 	}
-
-	var num = +this.formatValue,
-		isNum = !(num == null || isNaN(num)),
-		settings = this.getSettings(),
-		duration;
 		
-	if (!isNum) {
-		return "&nbsp;";
-	}
+	mom = moment.apply(null, args);
+
+	return mom.format(settings.format);
+};
+
+PS.Formatter.fn.time = function () {
+	var settings = this.getSettings(),
+		args = [this.formatValue, settings.units || "seconds"],
+		dur;
 	
-	if (num === 0) {
-		return "-";
-	}
+	dur = moment.duration.apply(null, args);
+
+	return dur.format(settings.format, settings.precision);
+};
+
+PS.Formatter.fn.date = function () {
+	var settings = this.getSettings(),
+		args = [this.formatValue],
+		mom;
 	
-	if (settings.units === "seconds") {
-		duration = moment.duration(num, 'seconds');
-		return DDK.util.trunc(duration.asMinutes()) + ":" + padTwo(duration.seconds());	
+	if (settings.units) {
+		args.push(settings.units);
 	}
-	
-	if (settings.units === "minutes") {
-		duration = moment.duration(num, 'minutes');
-		return DDK.util.trunc(duration.asHours()) + ":" + padTwo(duration.minutes());			
-	}
-	
-	return numeral(num).format("0,0" + (settings.precision ? "." + _.string.repeat("0", settings.precision) : "")) + settings.units;
+		
+	mom = moment.apply(null, args);
+
+	return mom.format(settings.format);
+};
+
+PS.Formatter.fn.chart = function () {
+	var settings = this.getSettings();
+
+	(function ($el, settings) {
+		_.defer(function () {
+			$el.sparkline(settings.value.split(","), settings);
+		});
+	})(this.$el, settings);
 };
 
 PS.Formatter.fn.arrow = function () {
@@ -231,4 +275,3 @@ PS.Formatter.fn.bulb = function () {
 	
 	return settings.bulb;
 };
-
