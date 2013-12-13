@@ -2387,10 +2387,7 @@
 		
 		// execute DDK2 formatting
 		$selection.find("[data-format]:visible").each(function() {
-			var $this = $(this),
-				formatter = new PS.Formatter($this);
-			
-			formatter.exec();
+			(new PS.Formatter(this)).exec();
 		});
 /*
 		$selection.find("[data-format]:visible").each(function() {
@@ -2408,10 +2405,4 @@
 			}
 		});
 */
-	};
-
-	DDK.format.typeMap = {
-		"int": "number",
-		"float": "number",
-		"text": "text"
 	};
