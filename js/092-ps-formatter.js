@@ -203,7 +203,7 @@ PS.Formatter.fn.date = function () {
 		args.push(settings.units);
 	}
 		
-	mom = moment.apply(null, args);
+	mom = moment.utc.apply(null, args);
 
 	return mom.format(settings.template);
 };
