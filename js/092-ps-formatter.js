@@ -205,7 +205,7 @@ PS.Formatter.fn.date = function () {
 		
 	mom = moment.apply(null, args);
 
-	return mom.format(settings.format);
+	return mom.format(settings.template);
 };
 
 PS.Formatter.fn.time = function () {
@@ -215,21 +215,7 @@ PS.Formatter.fn.time = function () {
 	
 	dur = moment.duration.apply(null, args);
 
-	return dur.format(settings.format, settings.precision);
-};
-
-PS.Formatter.fn.date = function () {
-	var settings = this.getSettings(),
-		args = [this.formatValue],
-		mom;
-	
-	if (settings.units) {
-		args.push(settings.units);
-	}
-		
-	mom = moment.apply(null, args);
-
-	return mom.format(settings.format);
+	return dur.format(settings.template, settings.precision);
 };
 
 PS.Formatter.fn.chart = function () {
