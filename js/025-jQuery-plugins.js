@@ -13,6 +13,27 @@
 			return parseInt($(elem).css("z-index"), 10) || 1;
 		}));
 	};
+
+	/* $.fn.reload jQuery plugin
+	 * Reloads a DDK Control element.
+	 * by: jsmreese
+	 */
+	$.fn.reload = function () {
+		return $.each(function (index, elem) {
+			var data = $(elem).controlData();
+			DDK.reloadControl(data.name, data.id);
+		});
+	};
+	
+	/* $.fn.findControls jQuery plugin
+	 * Returns a jQuery object containing the unique set of DDK control elements that are descendants of a given element.
+	 * by: jsmreese
+	 */
+	$.fn.findControls = function () {
+		return this.pushStack($.map(this, function (elem) {
+			return $(elem).find("[id^=\"psc_\"][id$=\"_widget\"]").get();
+		}));
+	};
 	
 	/* $.fn.parentControl jQuery plugin
 	 * Returns a jQuery object containing the unique set of parent DDK control elements for all elements in the calling context.
