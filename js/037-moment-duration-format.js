@@ -1,174 +1,215 @@
-/*
-(format, settings)
-(format, decimals)
-(format)
-(settings)
+// moment.duration.format([template] [, precision] [, settings])
+moment.duration.fn.format = function () {
 
-trim: 
-	"left" - format tokens are trimmed from the left until the first moment token that has a value (the final moment token is not trimmed)
-	"right" - format tokens are trimmed from the right until the first moment token that has a value > 1 (the final moment token is not trimmed)
-	"none" - format tokens are not trimmed
-	true - format tokens are trimmed before the first moment token with a value (trim direction is ideally based on native default rtl setting (how to find that?)
-	false - format tokens are not trimmed
-// default true
+	var tokenizer, tokens, types, typeMap, momentTypes, foundFirst,
+		args = [].slice.call(arguments),
+		settings = _.extend({}, this.format.defaults),
+		// keep a shadow copy of this moment for calculating remainders
+		remainder = moment.duration(this);
 
-decimals: number of decimal places to include after the decimal point (positive integer) or before the decimal point (negative integer)
-// default 0
+	// parse arguments
+	_.each(args, function (arg) {
+		if (typeof arg === "string") {
+			settings.template = arg;
+			return;
+		}
 
-escape: {
-	start: "["
-	end: "]"
-} -- how does mustache / lo-dash set template tokens?
-// default []
+		if (typeof arg === "number") {
+			settings.precision = arg;
+			return;
+		}
 
-tokens: object map with tokens
+		if (_.isPlainObject(arg)) {
+			_.extend(settings, arg);
+		}
+	});
 
-moment.duration.fn.format = function (format, settings) {
+	// types array
+	types = settings.types.split(" ");
 
-}
+	// tokenizer regexp
+	tokenizer = new RegExp(_.map(types, function (type) {
+		return settings[type].source;
+	}).join("|"), "g");
 
-
-
-tokenize
-find first/last token
-find hasValue
-trim
-loop through tokes to find all moment token in order (unique)
-then find moment token values
-
-then apply values to token array
-
-*/
-
-moment.duration.fn.format = function (format, decimals) {
-
-	// map token characters to moment types
-	var tokenTypeMap = {
-		"Y": "years",
-		"y": "years",
-		"M": "months",
-		"W": "weeks",
-		"w": "weeks",
-		"D": "days",
-		"d": "days",
-		"H": "hours",
-		"h": "hours",
-		"m": "minutes",
-		"S": "seconds",
-		"s": "seconds"
+	// token type map function
+	typeMap = function (token) {
+		return _.find(types, function (type, index) {
+			return settings[type].test(token);
+		});
 	};
 
-	// don't output tokens until a moment token with a value is found
-	var foundMomentToken = false;
-	
-	// regex for tokenizing format string
-	var tokenizer = /\[.+?\]|(Y|y)+|M+|(W|w)+|(D|d)+|(H|h)+|m+|(S|s)+|.+?/g;
-	
-	// regex for identifying escaped tokens
-	var escapedToken = /^\[.+\]$/;
-	
-	// regex for replacing square brackets in escaped tokens
-	var squareBrackets = /\[|\]/g;
-	
-	var remainder, tokens, lastMomentTokenIndex, firstMomentTokenIndex, firstMomentTokenLength, foundFirstMomentToken;
-	
-	// exit early if `format` is not a string
-	if (typeof format !== "string") {
-		return "";
-	}
+	// tokens array
+	tokens = _.map(settings.template.match(tokenizer), function (token, index) {
+		var type = typeMap(token),
+			length = token.length;
 
-	// decimal precision is applied to the final moment token, and must be a positive integer or 0
-	decimals = (_.isPositiveInteger(decimals) ? decimals : 0);
-
-	// keep a shadow copy of this moment for calculating remainders
-	remainder = moment.duration(this);
-	
-	// setup tokens array
-	tokens = _.map(format.match(tokenizer), function (token, index) {
-		var tokenType = tokenTypeMap[token[0]],
-			tokenLength = token.length;
-		
 		return {
-			token: (escapedToken.test(token) ? token.replace(squareBrackets, "") : token),
-			type: tokenType,
-			length: tokenLength,
-			hasValue: (tokenType ? this.as(tokenType) : null) > 1
+			index: index,
+			length: length,
+
+			// replace escaped tokens with the non-escaped token text
+			token: (type === "escape" ? token.replace(settings.escape, "$1") : token),
+
+			// ignore type on non-moment tokens
+			type: ((type === "escape" || type === "general") ? null : type)
+
+			// calculate base value for all moment tokens
+			//baseValue: ((type === "escape" || type === "general") ? null : this.as(type))
 		};
 	}, this);
 
-	// identify the last moment token
-	lastMomentTokenIndex = _.findLastIndex(tokens, "type");
+	// unique moment token types in the template (in order of descending magnitude)
+	momentTypes = _.intersection(types, _.unique(_.compact(_.pluck(tokens, "type"))));
 
-	// exit early if there are no moment tokens
-	if (lastMomentTokenIndex === -1) {
+	// exit early if there are no momentTypes
+	if (!momentTypes.length) {
 		return _.pluck(tokens, "token").join("");
 	}
-	tokens[lastMomentTokenIndex].isLastMomentToken = true;
 
-	// identify the first moment token
-	firstMomentTokenIndex = _.findIndex(tokens, "type");
-	tokens[firstMomentTokenIndex].isFirstMomentToken = true;
-	firstMomentTokenLength = tokens[firstMomentTokenIndex].length;
-	
-	// if the first moment token doesn't have a value
-	// discard all tokens before either the first moment token to have a value or the last moment token
-	if (!tokens[firstMomentTokenIndex].hasValue) {
-		tokens = _.rest(tokens, function (token) {
+	// calculate values for each token type in the template
+	_.each(momentTypes, function (momentType, index) {
+		var value, wholeValue, decimalValue;
+
+		// calculate integer and decimal value portions
+		value = remainder.as(momentType);
+		wholeValue = Math.floor(value);
+		decimalValue = value - wholeValue;
+
+		// is this the least-significant moment token found?
+		isLeast = ((index + 1) === momentTypes.length);
+
+		// is this the most-significant moment token found?
+		isMost = (!index);
+
+		// update tokens array
+		// using this algorithm to not assume anything about
+		// the order or frequency of any tokens
+		_.each(tokens, function (token) {
+			if (token.type === momentType) {
+				_.extend(token, {
+					value: value,
+					wholeValue: wholeValue,
+					decimalValue: decimalValue,
+					isLeast: isLeast,
+					isMost: isMost
+				});
+
+				if (isMost) {
+					// note the length of the most-significant moment token:
+					// if it is greater than one and forceLength is not set, default forceLength to `true`
+					if (settings.forceLength == null && token.length > 1) {
+						settings.forceLength = true;
+					}
+
+					// rationale is this:
+					// if the template is "h:mm:ss" and the moment value is 5 minutes, the user-friendly output is "5:00", not "05:00"
+					// shouldn't pad the `minutes` token even though it has length of two
+					// if the template is "hh:mm:ss", the user clearly wanted everything padded so we should output "05:00"
+					// if the user wanted the full padded output, they can set `{ trim: false }` to get "00:05:00"
+				}
+			}
+		});
+
+		// update remainder
+		remainder.subtract(wholeValue, momentType);
+	});
+
+	// trim tokens array
+	if (settings.trim) {
+		tokens = _[settings.trim === "left" ? "rest" : "initial"](tokens, function (token) {
 			// return `true` if:
-			// the token is not the last moment token
-			// the token is a moment token that does not have a value
-			return !(token.isLastMomentToken || (token.type != null && token.hasValue));
+			// the token is not the least moment token (don't trim the least moment token)
+			// the token is a moment token that does not have a value (don't trim moment tokens that have a whole value)
+			return !(token.isLeast || (token.type != null && token.wholeValue));
 		});
 	}
 
-	// for the tokens that remain
-	foundFirstMomentToken = false;
-	return _.map(tokens, function (token) {
-		var tokenVal,
-			tokenDecimalVal = "",
-			tokenAsVal;
-		
+	// build output
+
+	// the first moment token can have special handling
+	foundFirst = false;
+
+	// run the map in reverse order if trimming from the right
+	if (settings.trim === "right") {
+		tokens.reverse();
+	}
+
+	tokens = _.map(tokens, function (token, index) {
+		var val,
+			decVal;
+
 		if (!token.type) {
-			// if it is not a moment token, use the token as its value
+			// if it is not a moment token, use the token as its own value
 			return token.token;
 		}
-		
-		// if the first moment token is found, note it
-		// this could affect tokenLength padding later
-		if (token.isFirstMomentToken) {
-			foundFirstMomentToken = true;
-		}
-		
-		tokenAsVal = remainder.as(token.type);
-		tokenVal = Math.floor(tokenAsVal);
-		
-		if (token.isLastMomentToken && decimals) {
-			// if applying decimal precision to the last value
-			// use the remainder of the remainder
-			tokenDecimalVal = tokenAsVal - tokenVal;
-		}
-		
-		// apply decimalPrecision if required
-		if (decimals && tokenDecimalVal !== "") {
-			tokenDecimalVal = "." + _.string.rpad(tokenDecimalVal.toString().split(".")[1], decimals, "0").slice(0, decimals);
+
+		// apply negative precision formatting to the least-significant moment token
+		if (token.isLeast && (settings.precision < 0)) {
+			val = Math.floor(token.wholeValue * Math.pow(10, settings.precision)) * Math.pow(10, -settings.precision);
+		} else {
+			val = token.wholeValue.toString();
 		}
 
-		// update remainder
-		remainder.subtract(tokenVal, token.type);
-		
-		// apply tokenLength formatting
-		// except in the case that this is the first moment token with a value but was not the first moment token in the format
-		// if that happens, check the first moment token's tokenLength to see if we should apply tokenLength formatting
-		// trust me... it's what the users expect to happen
-		if (token.length > 1 && (foundFirstMomentToken || firstMomentTokenLength > 1)) {
-			tokenVal = _.string.pad(tokenVal, token.length, "0");
-		} else {
-			tokenVal = tokenVal.toString();
+		// apply token length formatting
+		// special handling for the first moment token that is not the most significant in a trimmed template
+		if (token.length > 1 && (foundFirst || token.isMost || settings.forceLength)) {
+			val = _.string.pad(val, token.length, "0");
 		}
-		
-		tokenVal += tokenDecimalVal;
-		foundFirstMomentToken = true;
-		
-		return tokenVal;
-	}).join("");
+
+		// add decimal value if precision > 0
+		if (token.isLeast && (settings.precision > 0)) {
+			decVal = token.decimalValue.toString().split(/\.|e\-/);
+			val += "." + _.string.rpad(_.string.repeat("0", decVal[2]) + decVal[1], settings.precision, "0").slice(0, settings.precision);
+		}
+
+		foundFirst = true;
+
+		return val;
+	});
+
+	// undo the reverse if trimming from the right
+	if (settings.trim === "right") {
+		tokens.reverse();
+	}
+
+	return tokens.join("");
 };
+
+moment.duration.fn.format.defaults = {
+	// token definitions
+	escape: /\[(.+?)\]/,
+	years: /[Yy]+/,
+	months: /M+/,
+	weeks: /[Ww]+/,
+	days: /[Dd]+/,
+	hours: /[Hh]+/,
+	minutes: /m+/,
+	seconds: /s+/,
+	milliseconds: /S+/,
+	general: /.+?/,
+
+	// token type names
+	// in order of descending magnitude
+	types: "escape years months weeks days hours minutes seconds milliseconds general",
+
+	// format options
+
+	// trim
+	// "left" - template tokens are trimmed from the left until the first moment token that has a value >= 1
+	// "right" - template tokens are trimmed from the right until the first moment token that has a value >= 1
+	// (the final moment token is not trimmed, regardless of value)
+	// `false` - template tokens are not trimmed
+	trim: "left",
+
+	// precision
+	// number of decimal digits to include after (to the right of) the decimal point (positive integer)
+	// or the number of digits to truncate to 0 before (to the left of) the decimal point (negative integer)
+	precision: 0,
+
+	// force first moment token with a value to render at full length even when template is trimmed and first moment token has length of 1
+	forceLength: null,
+
+	// template used to format duration
+	template: "d[d] h:mm:ss"
+}
