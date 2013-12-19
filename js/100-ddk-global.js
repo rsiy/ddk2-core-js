@@ -600,6 +600,11 @@
 	}
 
 	function fnResizeLayoutContent(iPane) {
+		// add media-query spoof classes to center pane
+		if (!iPane) {
+			DDK.spoofMediaQuery();
+		}
+
 		if (aoAccordion[iPane] !== -1) {
 			aoAccordion[iPane].accordion('refresh');
 			resizeContent(iPane, false, "accordion");
@@ -633,6 +638,11 @@
 		var p = asPane[iPane],
 			sec = iSection? (typeof iSection === "string"? iSection : asSection[iSection]) : "middle"
 		;
+		
+		// add media-query spoof classes to center pane
+		if (!iPane && sec === "middle") {
+			DDK.spoofMediaQuery();
+		}
 
 		if (DDK.accordion[p] !== undefined && DDK.accordion[p][sec] !== undefined) {
 			DDK.accordion[p][sec].accordion('refresh');

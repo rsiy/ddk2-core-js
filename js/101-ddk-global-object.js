@@ -2410,3 +2410,37 @@
 		});
 */
 	};
+	
+DDK.spoofMediaQuery = function () {
+	var $center = $("#layout_content_center"),
+		width = $center.width(),
+		sizes = DDK.spoofMediaQuery.sizes,
+		ranges = DDK.spoofMediaQuery.ranges,
+		classList = _.map(sizes, function (size) {
+			return "ddk-mq-" + size;
+		});
+
+	$center.removeClass(classList.join(" "));
+		
+	_.each(sizes, function (size, index) {
+		if (width > ranges[size].min && width <= ranges[size].max) {
+			$center.addClass(classList[index]);
+		}
+	});
+};
+
+DDK.spoofMediaQuery.sizes = "small medium large".split(" ");
+DDK.spoofMediaQuery.ranges = {
+	small: {
+		min: 0,
+		max: 640
+	},
+	medium: {
+		min: 640,
+		max: 1024
+	},
+	large: {
+		min: 1024,
+		max: Infinity
+	}
+};
