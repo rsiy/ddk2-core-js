@@ -988,6 +988,35 @@
 				}
 			}
 		});
+		
+		function normalizeLevels($target) {
+			$target.children("ul").each(function (index, elem) {
+				var $bams = $(elem).children("li"),
+					$level = _.map(["header", "content", "footer"], function (type) {
+						return $bams.children(".ddk-bam-" + type).children("span");
+					});
+				
+				// set header, content, and footer font sizes for this level
+				_.each($level, function ($group) {
+					var groupFontSize = Infinity;
+					
+					// find the smallest font size in the group
+					$group.each(function (index, elem) {
+						groupFontSize = Math.min(groupFontSize, parseInt($(elem).css("font-size")));
+					});
+					
+					// apply that font size to all elements in the group
+					$group.css("font-size", groupFontSize.toString() + "px")
+				});
+				
+				// recurse on all bams
+				normalizeLevels($bams);
+			});
+		}
+		
+		// iterate through each level of nesting
+		// so that every level of nesting will be rendered consistently
+		normalizeLevels($content);
 	}
 
 	function resizeBamText(index, elem) {
