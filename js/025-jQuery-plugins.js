@@ -29,7 +29,7 @@
 	};
 	
 	/* $.fn.reload jQuery plugin
-	 * Reloads a DDK Control element.
+	 * Reloads DDK Control elements.
 	 * by: jsmreese
 	 */
 	$.fn.reload = function () {
@@ -37,6 +37,19 @@
 			var data = $(elem).controlData();
 			if (data.name && data.id) {
 				DDK.reloadControl(data.name, data.id);
+			}
+		});
+	};
+
+	/* $.fn.resize jQuery plugin
+	 * Resizes DDK Control elements.
+	 * by: jsmreese
+	 */
+	$.fn.resize = function () {
+		return this.each(function (index, elem) {
+			var data = $(elem).controlData();
+			if (data.name && data.id) {
+				DDK[data.name].resize(data.id);
 			}
 		});
 	};
