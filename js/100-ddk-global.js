@@ -32,7 +32,7 @@
 			$chartImageMap,
 			oldImageWidth,
 			oldImageHeight,
-			data = $('#psc_chart_data_' + id).data(),
+			data = $('#psc_chart_data_' + id).data() || {},
 			scp = data.scp,
 			$table = $control.find("#" + id + "_datatable"),
 			chartType = (((typeof data.type === "string") && data.type) ? data.type : "column"),
