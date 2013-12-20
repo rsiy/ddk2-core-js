@@ -2034,7 +2034,7 @@
 				seriesConfig: configChartSeries,
 				title: "Chart",
 				fodResize: false,
-				resizeDataTable: resizeChartDataTable
+				resizeDatatable: resizeChartDatatable
 			},
 			table: {
 				bAjaxDataGet: true,
