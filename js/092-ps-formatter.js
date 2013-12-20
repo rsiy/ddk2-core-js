@@ -140,6 +140,8 @@ PS.Formatter.fn.defaults = {
 	arrowAttr: "",
 	arrowClassName: "",
 	arrowTemplate: "<span class=\"format-arrow <%= direction %> <%= arrowClassName %>\" <%= arrowAttr %>></span>",
+	bulbAttr: "",
+	bulbClassName: "",
 	bulbTemplate: "<span class=\"format-bulb <%= bulbClassName %>\" <%= bulbAttr %>></span>",
 	orientation: 1,
 	direction: 0,
@@ -274,4 +276,23 @@ PS.Formatter.fn.bulb = function () {
 	var settings = this.getSettings();
 	
 	return _.template(settings.bulbTemplate, settings);
+};
+
+PS.Formatter.fn.percent = function () {
+	var num = +this.formatValue,
+		isNum = !(num == null || isNaN(num)),
+		settings = this.getSettings();
+		
+	if (!isNum) {
+		return "&nbsp;";
+	}
+	
+	if (num === 0) {
+		return "-";
+	}
+	
+	settings.units = "%";
+	settings.units = _.template(settings.unitsTemplate, settings);
+		
+	return numeral(num).format("0,0" + (settings.precision ? "." + _.string.repeat("0", settings.precision) : "")) + settings.units;
 };
