@@ -14,14 +14,30 @@
 		}));
 	};
 
+	/* $.fn.scaleAreas jQuery plugin
+	 * Scales the area coords within a target by an arbitrary factor.
+	 * by: jsmreese
+	 */
+	$.fn.scaleAreas = function (factor) {
+		this.find("area").attr("coords", function (index, coords) {
+			return _.map(coords.split(","), function (coord) {
+				return Math.round(coord * factor);
+			}).join(",");
+		});
+		
+		return this;
+	};
+	
 	/* $.fn.reload jQuery plugin
 	 * Reloads a DDK Control element.
 	 * by: jsmreese
 	 */
 	$.fn.reload = function () {
-		return $.each(function (index, elem) {
+		return this.each(function (index, elem) {
 			var data = $(elem).controlData();
-			DDK.reloadControl(data.name, data.id);
+			if (data.name && data.id) {
+				DDK.reloadControl(data.name, data.id);
+			}
 		});
 	};
 	
