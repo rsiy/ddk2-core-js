@@ -15,7 +15,7 @@
 	 *	Dynamic Chart
 	 *	PSC_Chart_JS
 	 */
-
+	 
 	function PSC_Chart_Resize(id, forceResize) {
 		var options = DDK.chart.data[id] = DDK.chart.data[id] || {};
 
@@ -23,7 +23,47 @@
 			contentBlock = $control.hasClass("ps-content-block"),
 			controlHeight = (contentBlock ? $control.height() : 0),
 			controlWidth = (contentBlock ? $control.width(): 0),
-			isOverResizeThreshold;
+			isOverResizeThreshold,
+			aspectRatio = $control.data("aspectRatio"),
+			oldControlHeight,
+			scaleFactor,
+			$chartImage,
+			$chartImageMap,
+			oldImageWidth,
+			oldImageHeight,
+			$data = $('#psc_chart_data_' + id),
+			$table = $control.find("#" + id + "_datatable"),
+			chartType = (((typeof $data.data("type") === "string") && $data.data("type")) ? $data.data("type") : "column"),
+			isVertical = (chartType.indexOf("pie") === -1) && (chartType.indexOf("doughnut") === -1) && (chartType.indexOf("bar") === -1);
+
+		// if using data-aspect-ratio, set control container height based on the width
+		if (aspectRatio) {
+			oldControlHeight = $control.height();
+			controlWidth = $control.width();
+			controlHeight = controlWidth / aspectRatio;
+			$control.height(controlHeight);
+
+			DDK.chart.data[id].height = controlHeight;
+			DDK.chart.data[id].width = controlWidth;
+			
+			// scale chart image based on % change in height
+			scaleFactor = controlHeight / oldControlHeight;
+			$chartImage = $control.find(".ddk-chart-container").find("img");
+			oldImageWidth = $chartImage.width();
+			oldImageHeight = $chartImage.height();
+			
+			$chartImage.width(oldImageWidth * scaleFactor);
+			$chartImage.height(oldImageHeight * scaleFactor);
+			
+			// scale image map coordinates
+			$chartImageMap = $control.find(".ddk-chart-container").find("map");
+			$chartImageMap.scaleAreas(scaleFactor);
+			
+			// resize datatable
+			$table.size() && isVertical && DDK.chart.resizeDatatable($table, $chartImageMap, isVertical);;			
+			
+			return;
+		};
 
 		options.height = options.height ? options.height : 0;
 		options.width = options.width ? options.width : 0;
@@ -942,8 +982,17 @@
 			controlHeight = $control.height(),
 			controlWidth = $control.width(),
 			toolbarHeight = $control.children('.ps-toolbar').first().outerHeight(true) + $control.children('.ps-toolbar').last().outerHeight(true) + $control.children('.ddk-fav-bar').outerHeight(true),
-			contentHeight = controlHeight - toolbarHeight;
+			contentHeight = controlHeight - toolbarHeight,
+			aspectRatio = $control.data("aspectRatio");
 
+		// if using data-aspect-ratio, set control container height based on the width
+		// and recalculate contentHeight
+		if (aspectRatio) {
+			controlHeight = controlWidth / aspectRatio;
+			$control.height(controlHeight);
+			contentHeight = controlHeight - toolbarHeight;
+		}
+		
 		//console.log($control.children('.ps-toolbar').first().outerHeight(true), $control.children('.ps-toolbar').last().outerHeight(true), $control.children('.ddk-fav-bar').outerHeight(true));
 		$content.outerHeight(contentHeight);
 		$content.children("ul").each(function() {

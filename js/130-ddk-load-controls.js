@@ -83,7 +83,9 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 		options,
 		$control = $("#" + controlContainerId),
 		controlData = $control.data() || {},
-		re = new RegExp(controlId,'g');
+		re = new RegExp(controlId,'g'),
+		containerHeight,
+		containerWidth;
 		
 	// register error if controId contains any uppercase characters or underscore characters
 	if (!/^[a-z][a-z0-9]*$/.test(controlId)) {
@@ -120,12 +122,21 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 	// else, warn that the container is not found
 	if ($control.size()) {
 		DDK.pdfCount += 1;
+		
+		containerWidth = $control.width();
+		containerHeight = $control.height();
+		
+		// if using data-aspect-ratio, set control container height based on the width
+		if (controlData.aspectRatio) {
+			containerHeight = containerWidth / controlData.aspectRatio;
+			$control.height(containerHeight);
+		}
 
 		K({
 			id: controlId,
 			init_widget: K("s_" + controlId + "_iw") || K(controlName + "__" + controlId + "_init_widget") || controlData.options,
-			container_height: options.height || $control.height() || 0,
-			container_width: options.width || $control.width() || 0
+			container_height: options.height || containerHeight || 0,
+			container_width: options.width || containerWidth || 0
 		}, controlName + "_");
 
 		if (controlName === "bamset" || controlName === "scorecard") {

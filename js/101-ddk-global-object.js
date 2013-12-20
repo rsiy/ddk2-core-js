@@ -2033,7 +2033,8 @@
 				init: initChart,
 				seriesConfig: configChartSeries,
 				title: "Chart",
-				fodResize: false
+				fodResize: false,
+				resizeDataTable: resizeChartDataTable
 			},
 			table: {
 				bAjaxDataGet: true,
@@ -2427,6 +2428,8 @@ DDK.spoofMediaQuery = function () {
 			$center.addClass(classList[index]);
 		}
 	});
+	
+	$center.findControls().resize();
 };
 
 DDK.spoofMediaQuery.sizes = "small medium large".split(" ");
