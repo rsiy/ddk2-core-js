@@ -210,13 +210,18 @@ PS.Formatter.fn.date = function () {
 	}
 		
 	mom = moment.utc.apply(null, args);
+	mom.local();
 
 	// pass settings.template argument to fromNow
 	if (settings.method === "format") {
 		return mom.format(settings.template);
 	}
 	
-	return mom[settings.method]();
+	if (typeof mom[settings.method] === "function") {
+		return mom[settings.method]();
+	}
+	
+	return "Invalid format method: " + settings.method;
 };
 
 PS.Formatter.fn.time = function () {
@@ -230,8 +235,12 @@ PS.Formatter.fn.time = function () {
 	if (settings.method === "humanize") {
 		return dur.humanize();
 	}
+
+	if (typeof dur[settings.method] === "function") {
+		return dur[settings.method](settings);
+	}
 	
-	return dur[settings.method](settings);
+	return "Invalid format method: " + settings.method;
 };
 
 PS.Formatter.fn.chart = function () {
