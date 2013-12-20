@@ -26,28 +26,40 @@
 			isOverResizeThreshold,
 			aspectRatio = $control.data("aspectRatio"),
 			oldControlHeight,
+			oldControlWidth,
 			scaleFactor,
 			$chartImage,
 			$chartImageMap,
 			oldImageWidth,
 			oldImageHeight,
-			$data = $('#psc_chart_data_' + id),
+			data = $('#psc_chart_data_' + id).data(),
+			scp = data.scp,
 			$table = $control.find("#" + id + "_datatable"),
-			chartType = (((typeof $data.data("type") === "string") && $data.data("type")) ? $data.data("type") : "column"),
-			isVertical = (chartType.indexOf("pie") === -1) && (chartType.indexOf("doughnut") === -1) && (chartType.indexOf("bar") === -1);
+			chartType = (((typeof data.type === "string") && data.type) ? data.type : "column"),
+			isVertical = (chartType.indexOf("pie") === -1) && (chartType.indexOf("doughnut") === -1) && (chartType.indexOf("bar") === -1),
+			$seriesConfig,
+			seriesConfigWidth;
 
 		// if using data-aspect-ratio, set control container height based on the width
 		if (aspectRatio) {
 			oldControlHeight = $control.height();
 			controlWidth = $control.width();
 			controlHeight = controlWidth / aspectRatio;
+			oldControlWidth = oldControlHeight * aspectRatio;
 			$control.height(controlHeight);
 
 			DDK.chart.data[id].height = controlHeight;
 			DDK.chart.data[id].width = controlWidth;
 			
 			// scale chart image based on % change in height
-			scaleFactor = controlHeight / oldControlHeight;
+			// account for series config width if it's on the right or left
+			$seriesConfig = $control.find("#psc_chart_" + id + "_series_config");
+			if ($seriesConfig.length && (scp === "right" || scp === "left")) {
+				seriesConfigWidth = $seriesConfig.outerWidth(true);
+				scaleFactor = (controlWidth - seriesConfigWidth) / (oldControlWidth - seriesConfigWidth);
+			} else {
+				scaleFactor = controlHeight / oldControlHeight;
+			}
 			$chartImage = $control.find(".ddk-chart-container").find("img");
 			oldImageWidth = $chartImage.width();
 			oldImageHeight = $chartImage.height();
