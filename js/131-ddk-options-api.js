@@ -77,9 +77,14 @@ DDK.scorecard2.optionsAPI.columnConfig = {
 		"options": {
 			"headerStyle": {
 				"id": "header_style",
-				"label": "Header Style",
+				"label": "Mode",
 				"description": "Toggle header between Title/Subtitle configuration and custom format.",
-				"notes": ""
+				"notes": "",
+				"values": [
+					{ "id": "basic", "text": "Title / Subtitle" },
+					{ "id": "custom", "text": "Custom" }
+				],
+				"displayType": "radio"
 			}
 		}
 	},
@@ -111,14 +116,14 @@ DDK.scorecard2.optionsAPI.columnConfig = {
 
 			"attr": {
 				"id": "attr",
-				"label": "Attributes",
+				"label": "Column Attributes",
 				"description": "",
 				"notes": ""
 			},
 
 			"className": {
 				"id": "class_name",
-				"label": "Classes",
+				"label": "Column Classes",
 				"description": "",
 				"notes": ""
 			},
@@ -161,13 +166,13 @@ _.each([
 	// column config
 	columnConfigOptions[rowType.id + "Attr"] = {
 		"id": rowType.id + "_attr",
-		"label": rowType.title + " Attributes",
+		"label": rowType.title + " Cell Attributes",
 		"description": "HTML attributes rendered on each " + rowType.tagName + " element in each " + rowType.title + " row.",
 		"notes": ""
 	};
 	columnConfigOptions[rowType.id + "ClassName"] = {
 		"id": rowType.id + "_class_name",
-		"label": rowType.title + " Classes",
+		"label": rowType.title + " Cell Classes",
 		"description": "Classes rendered on each " + rowType.tagName + " element in each " + rowType.title + " row.",
 		"notes": ""
 	};
@@ -201,31 +206,31 @@ _.each([
 		// config
 		columnConfigOptions[propertyPrefix + "Attr"] = {
 			"id": idPrefix + "attr",
-			"label": labelPrefix + "Attributes",
+			"label": sectionType.title + " Attributes",
 			"description": "HTML attributes rendered on each div." + sectionType.id + " element in each " + rowType.title + " row.",
 			"notes": ""
 		};
 		columnConfigOptions[propertyPrefix + "ClassName"] = {
 			"id": idPrefix + "class_name",
-			"label": labelPrefix + "Classes",
+			"label": sectionType.title + " Classes",
 			"description": "Classes rendered on each div." + sectionType.id + " element in each " + rowType.title + " row.",
 			"notes": ""
 		};
 		columnConfigOptions[propertyPrefix + "Value"] = {
 			"id": idPrefix + "value",
-			"label": labelPrefix + "Value",
+			"label": sectionType.title + " Value",
 			"description": "Sets the data-format-value attribute on each div." + sectionType.id + " element in each " + rowType.title + " row.",
 			"notes": ""
 		};
 		columnConfigOptions[propertyPrefix + "Format"] = {
 			"id": idPrefix + "format",
-			"label": labelPrefix + "Format",
+			"label": sectionType.title + " Format",
 			"description": "Sets the data-format attribute on each div." + sectionType.id + " element in each " + rowType.title + " row.",
 			"notes": ""
 		};
 		columnConfigOptions[propertyPrefix + "Style"] = {
 			"id": idPrefix + "style",
-			"label": "Format Style",
+			"label": sectionType.title + " Format Style",
 			"description": "Sets the data-format-style attribute on each div." + sectionType.id + " element in each " + rowType.title + " row.",
 			"notes": ""
 		};
