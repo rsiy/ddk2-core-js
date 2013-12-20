@@ -134,10 +134,16 @@ PS.Formatter.fn.defaults = {
 	precision: 0,
 	units: "",
 	unitsPosition: "right",
-	unitsTemplate: "<span class=\"format-units\"><%= units %></span>",
-	arrowTemplate: "<span class=\"format-arrow ddk-icon\"><%= arrow %></span>",
-	bulbTemplate: "<span class=\"format-bulb ddk-icon\"><%= bulb %></span>",
-	orientation: 1
+	unitsAttr: "",
+	unitsClassName: "",
+	unitsTemplate: "<span class=\"format-units <%= unitsClassName %>\" <%= unitsAttr %>><%= units %></span>",
+	arrowAttr: "",
+	arrowClassName: "",
+	arrowTemplate: "<span class=\"format-arrow <%= direction %> <%= arrowClassName %>\" <%= arrowAttr %>></span>",
+	bulbTemplate: "<span class=\"format-bulb <%= bulbClassName %>\" <%= bulbAttr %>></span>",
+	orientation: 1,
+	direction: 0,
+	method: "format"
 };
 
 // default formatter functions
@@ -205,7 +211,12 @@ PS.Formatter.fn.date = function () {
 		
 	mom = moment.utc.apply(null, args);
 
-	return mom.format(settings.template);
+	// pass settings.template argument to fromNow
+	if (settings.method === "format") {
+		return mom.format(settings.template);
+	}
+	
+	return mom[settings.method]();
 };
 
 PS.Formatter.fn.time = function () {
@@ -214,8 +225,13 @@ PS.Formatter.fn.time = function () {
 		dur;
 	
 	dur = moment.duration.apply(null, args);
-
-	return dur.format(settings.template, settings.precision);
+	
+	// don't pass settings argument to humanize
+	if (settings.method === "humanize") {
+		return dur.humanize();
+	}
+	
+	return dur[settings.method](settings);
 };
 
 PS.Formatter.fn.chart = function () {
@@ -230,34 +246,23 @@ PS.Formatter.fn.chart = function () {
 
 PS.Formatter.fn.arrow = function () {
 	var num = +this.formatValue,
-		isNum = !(num == null || isNaN(num)),
 		settings = this.getSettings();
-		
-	if (!isNum) {
-		return "&nbsp;";
+	
+	if (!settings.direction) {	
+		if (num > 0 && settings.orientation === 1 || num < 0 && settings.orientation === -1) {
+			settings.direction = "up";
+		} else if (num > 0 && settings.orientation === -1 || num < 0 && settings.orientation === 1) {
+			settings.direction = "down";
+		} else {
+			settings.direction = "neutral";		
+		}
 	}
 	
-	if (num === 0) {
-		return "&nbsp;";
-	}
-	
-	if (num > 0 && settings.orientation === 1) {
-		settings.arrow = "&#327;"; // up
-	} else {
-		settings.arrow = "&#328;"; // down
-	}
-	
-	settings.arrow = _.template(settings.arrowTemplate, settings);
-	
-	return settings.arrow;
+	return _.template(settings.arrowTemplate, settings);
 };
 
 PS.Formatter.fn.bulb = function () {
 	var settings = this.getSettings();
 	
-	settings.bulb = "&#288;"; // filled circle
-	
-	settings.bulb = _.template(settings.bulbTemplate, settings);
-	
-	return settings.bulb;
+	return _.template(settings.bulbTemplate, settings);
 };
