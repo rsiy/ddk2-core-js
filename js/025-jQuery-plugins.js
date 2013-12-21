@@ -41,11 +41,11 @@
 		});
 	};
 
-	/* $.fn.resize jQuery plugin
+	/* $.fn.resizeControls jQuery plugin
 	 * Resizes DDK Control elements.
 	 * by: jsmreese
 	 */
-	$.fn.resize = function () {
+	$.fn.resizeControls = function () {
 		return this.each(function (index, elem) {
 			var data = $(elem).controlData();
 			if (data && data.name && data.id) {
