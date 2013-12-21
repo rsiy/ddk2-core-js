@@ -48,7 +48,7 @@
 	$.fn.resize = function () {
 		return this.each(function (index, elem) {
 			var data = $(elem).controlData();
-			if (data.name && data.id) {
+			if (data && data.name && data.id) {
 				DDK[data.name].resize(data.id);
 			}
 		});
