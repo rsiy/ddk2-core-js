@@ -84,7 +84,7 @@
 	$.fn.controlData = function () {
 		var ret = _.compact($.map(this, function (elem) {
 			var $elem = $(elem),
-				elemIdParts = elem.id.split("_"),
+				elemIdParts = (elem.id ? elem.id.split("_") : []),
 				id = elemIdParts[2],
 				name = elemIdParts[1],
 				controlData,
