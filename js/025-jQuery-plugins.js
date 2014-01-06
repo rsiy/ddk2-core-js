@@ -41,14 +41,14 @@
 		});
 	};
 
-	/* $.fn.resize jQuery plugin
+	/* $.fn.resizeControls jQuery plugin
 	 * Resizes DDK Control elements.
 	 * by: jsmreese
 	 */
-	$.fn.resize = function () {
+	$.fn.resizeControls = function () {
 		return this.each(function (index, elem) {
 			var data = $(elem).controlData();
-			if (data.name && data.id) {
+			if (data && data.name && data.id) {
 				DDK[data.name].resize(data.id);
 			}
 		});
@@ -84,7 +84,7 @@
 	$.fn.controlData = function () {
 		var ret = _.compact($.map(this, function (elem) {
 			var $elem = $(elem),
-				elemIdParts = elem.id.split("_"),
+				elemIdParts = (elem.id ? elem.id.split("_") : []),
 				id = elemIdParts[2],
 				name = elemIdParts[1],
 				controlData,

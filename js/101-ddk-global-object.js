@@ -2429,7 +2429,7 @@ DDK.spoofMediaQuery = function () {
 		}
 	});
 	
-	$center.findControls().resize();
+	$center.findControls().resizeControls();
 };
 
 DDK.spoofMediaQuery.sizes = "small medium large".split(" ");
