@@ -1,8 +1,13 @@
-// moment.humanize
-moment.fn.humanize = _.partial(moment.fn.fromNow, true);
-
-// moment.duration.fromNow
-moment.duration.fn.fromNow = _.partial(moment.duration.fn.humanize, true);
+/*! Moment Duration Format v1.0.0
+ *  https://github.com/jsmreese/moment-duration-format 
+ *  Date: 2013-12-27
+ *
+ *  Duration format plugin function for the Moment.js library
+ *  http://momentjs.com/
+ *
+ *  Copyright 2013 John Madhavan-Reese
+ *  Released under the MIT license
+ */
 
 // moment.duration.format([template] [, precision] [, settings])
 moment.duration.fn.format = function () {
@@ -13,9 +18,13 @@ moment.duration.fn.format = function () {
 		// keep a shadow copy of this moment for calculating remainders
 		remainder = moment.duration(this);
 
+	// add a reference to this duration object to the settings for use
+	// in a template function
+	settings.duration = this;
+
 	// parse arguments
 	_.each(args, function (arg) {
-		if (typeof arg === "string") {
+		if (typeof arg === "string" || typeof arg === "function") {
 			settings.template = arg;
 			return;
 		}
@@ -30,8 +39,13 @@ moment.duration.fn.format = function () {
 		}
 	});
 
-	// types array
-	types = settings.types.split(" ");
+	// types
+	types = settings.types = (_.isArray(settings.types) ? settings.types : settings.types.split(" "));
+
+	// template
+	if (typeof settings.template === "function") {
+		settings.template = settings.template.apply(settings);
+	}
 
 	// tokenizer regexp
 	tokenizer = new RegExp(_.map(types, function (type) {
@@ -40,7 +54,7 @@ moment.duration.fn.format = function () {
 
 	// token type map function
 	typeMap = function (token) {
-		return _.find(types, function (type, index) {
+		return _.find(types, function (type) {
 			return settings[type].test(token);
 		});
 	};
@@ -141,7 +155,7 @@ moment.duration.fn.format = function () {
 		tokens.reverse();
 	}
 
-	tokens = _.map(tokens, function (token, index) {
+	tokens = _.map(tokens, function (token) {
 		var val,
 			decVal;
 
@@ -166,7 +180,7 @@ moment.duration.fn.format = function () {
 		// add decimal value if precision > 0
 		if (token.isLeast && (settings.precision > 0)) {
 			decVal = token.decimalValue.toString().split(/\.|e\-/);
-			val += "." + _.string.rpad(_.string.repeat("0", decVal[2]) + decVal[1], settings.precision, "0").slice(0, settings.precision);
+			val += "." + _.string.rpad(decVal[1] ? _.string.repeat("0", decVal[2]) + decVal[1] : "0", settings.precision, "0").slice(0, settings.precision);
 		}
 
 		foundFirst = true;
@@ -197,6 +211,7 @@ moment.duration.fn.format.defaults = {
 
 	// token type names
 	// in order of descending magnitude
+	// can be a space-separated token name list or an array of token names
 	types: "escape years months weeks days hours minutes seconds milliseconds general",
 
 	// format options
@@ -217,5 +232,36 @@ moment.duration.fn.format.defaults = {
 	forceLength: null,
 
 	// template used to format duration
-	template: "d[d] h:mm:ss"
-}
+	// may be a function or a string
+	// template functions are executed with the `this` binding of the settings object
+	// so that template strings may be dynamically generated based on the duration object
+	// (accessible via `this.duration`)
+	// or any of the other settings
+	template: function () {
+		var types = this.types,
+			dur = this.duration,
+			lastType = _.findLast(types, function (type) {
+				return dur._data[type];
+			});
+
+		// default template strings for each duration dimension type
+		switch (lastType) {
+			case "seconds":
+				return "h:mm:ss";
+			case "minutes":
+				return "d[d] h:mm";
+			case "hours":
+				return "d[d] h[h]";
+			case "days":
+				return "M[m] d[d]";
+			case "weeks":
+				return "y[y] w[w]";
+			case "months":
+				return "y[y] M[m]";
+			case "years":
+				return "y[y]";
+			default:
+				return "y[y] M[m] d[d] h:mm:ss";
+		}
+	}
+};
