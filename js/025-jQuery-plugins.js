@@ -27,6 +27,21 @@
 		
 		return this;
 	};
+
+	/* $.fn.isControl jQuery plugin
+	 * Returns true if an element is a DDK Control container.
+	 * If there are multiple elements in the collection, 
+	 * it will return true if any of the elements is a control container.
+	 * by: jsmreese
+	 */
+	$.fn.isControl = function () {
+		return _.any(this.map(function (index, elem) {
+			var data = $(elem).controlData();
+			if (data && data.name && data.id) {
+				return true;
+			}
+		}).get());
+	};
 	
 	/* $.fn.reload jQuery plugin
 	 * Reloads DDK Control elements.
@@ -35,7 +50,7 @@
 	$.fn.reload = function () {
 		return this.each(function (index, elem) {
 			var data = $(elem).controlData();
-			if (data.name && data.id) {
+			if (data && data.name && data.id) {
 				DDK.reloadControl(data.name, data.id);
 			}
 		});
