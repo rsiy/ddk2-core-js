@@ -11,38 +11,67 @@ DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, bef
 			url: "amengine.aspx",
 			dataType: "json",
 			data: {
-				"config.mn": "DDK_Data_Request"
+				"config.mn": "DDK_Control_Data_Request"
 			},
 			success: function (data) {
-				var dataset = data && data.datasets && data.datasets[0],
-					record =  dataset && dataset[0],
-					originalControlId = record && record.sci_fav_ext_id3,
-					originalFavName = record && record.sci_fav_name.split && record.sci_fav_name.split(","),
-					originalFavId = record && record.sci_fav_id,
-					originalControlOptions = originalFavName && originalFavName[4],
-					originalControlName = originalFavName && originalFavName[3],
-					originalFavValue = record && record.sci_fav_value,
-					newControlId = originalControlName && originalControlName + originalFavId,
-					newFavValue = originalFavValue && originalFavValue.replace(RegExp(originalControlId, "g"), newControlId),
-					newKeys = newFavValue ? newFavValue.split("&") : [],
-					dataKeywords = "";
+				var control = data && data.controls && data.controls[0],
+				    errorMessage = data && data.errorMessage,
+				    controlContainerId = control && control.controlContainerId,
+				    controlName = control && control.controlName,
+				    controlId = control && control.controlId,
+				    controlOptions = control && control.controlOptions,
+				    $control = $("#" + controlContainerId),
+				    controlHtml = (control && control.controlHtml)? _.unescape(control.controlHtml) : "",
+				    controlFavVal = control && control.controlFavValue,
+				    controlData = $control.data() || {},
+				    options,
+				    containerWidth = $control.width(),
+				    containerHeight = $control.height();
+					
+				if (errorMessage) {
+					DDK.error("AMEngine Server JavaScript Error: ", errorMessage);
+				} 
+				else if ($control.size()) {
+					// initialize custom control options object
+					DDK[controlName].data[controlId] = DDK[controlName].data[controlId] || {};
+					// cache options for this function
+					options = DDK[controlName].data[controlId];
 
-				if (originalFavId && originalControlName && originalControlOptions && newControlId) {
-					// parse new favorite value
-					// keyword update all state keywords (s_)
-					// add all other keywords to the control container's data-keywords attribute
-					_.each(newKeys, function (value, index) {
-						if (_.string.startsWith(value, "s_")) {
-							K(value);
-						} else {
-							dataKeywords += "&" + value;
-						}
+					// cache the callback, beforeInit, and beforeReload functions
+					// to custom control options, or grab them from custom control options
+					// if they are not passed to this function
+					if (callback) {
+						DDK[controlName].data[controlId].callback = callback;
+					} else if (options.callback) {
+						callback = options.callback;
+					}
+					if (beforeInit) {
+						DDK[controlName].data[controlId].beforeInit = beforeInit;
+					} else if (options.beforeInit) {
+						beforeInit = options.beforeInit;
+					}
+					if (beforeReload) {
+						DDK[controlName].data[controlId].beforeReload = beforeReload;
+					} else if (options.beforeReload) {
+						beforeReload = options.beforeReload;
+					}
+					// if using data-aspect-ratio, set control container height based on the width
+					if (controlData.aspectRatio) {
+						containerHeight = containerWidth / controlData.aspectRatio;
+						$control.height(containerHeight);
+					}
+
+					DDK.defer(function () {
+						var subTarget = "psc_" + controlName + "_" + controlId + "_widget",
+						    //add class attr if controlName = table to fix issue when resizing window
+						    divHtml = "<div style='height: 100%; width: 100%;' id='" + subTarget + "' data-options='" + controlOptions + "' data-keywords=\"" + controlFavVal + "\" " + (controlName === "table"? " class='ps-content-row'" : "") + "></div>";
+						hideMask(target);
+						$("body").children(".ps-tooltip-dialog").not(".ddk-dialog-persist").remove();
+						$target.empty().html(divHtml).find("#"+subTarget).html(controlHtml);
+
+						reloadControlContainer(controlName, controlId, options, callback, $control);
 					});
-					$target.empty().html("<div style='height: 100%; width: 100%;' id='psc_" + originalControlName + "_" + newControlId + "_widget' data-options='" + originalControlOptions + "' data-keywords=\"" + dataKeywords + "\"></div>");
-					DDK.reloadControl(originalControlName, newControlId, callback, beforeInit, beforeReload);
-				} else {
-					DDK.error("DDK.reloadFromFavorite(): cannot parse favorite id " + favoriteId);
-				}			
+				}
 			}
 		};
 
@@ -52,6 +81,9 @@ DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, bef
 	// exit with a warning if the target cannot be found
 	if (!$target.size()) {
 		DDK.warn("DDK.reloadFromFavorite(): target not found.");
+		return;
+	} else if (!$target.isControl()) {
+		DDK.warn("DDK.reloadFromFavorite(): target is not a control element.");
 		return;
 	}
 
@@ -72,7 +104,15 @@ DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, bef
 	// use keyword ddk.fav.id for favoriteId
 	ajaxSettings.data["ddk.fav.id"] = favoriteId;
 	ajaxSettings.data["data.config"] = JSON.stringify(dataConfig);
-	
+
+	//include K.toObject values to ajaxSettings.data
+	_.each(_.omit(K.toObject(), function (value, key) { 
+		return _.string.startsWith(key, "sec.") || (_.string.startsWith(key, "s_")); 
+	}), function(value, key) {
+		if (key !== "table_id" && key !=="scorecard_id")
+			ajaxSettings.data[key] = value;
+	});
+
 	// get favorite data
 	$.ajax(ajaxSettings);
 }
@@ -166,29 +206,7 @@ DDK.reloadControl = function (controlName, controlId, callback, beforeInit, befo
 			options.beforeReload(controlName, controlId);
 		}
 		run(controlContainerId, "PSC_" + controlTitle + "_Widget", function (data, header, id) {
-			var $controlDebugOutput,
-				$controlDebug;
-				
-			if (typeof options.beforeInit === "function") {
-				options.beforeInit(controlName, controlId);
-			}
-			DDK[controlName].init(controlId);
-			if (typeof callback === "function") {
-				callback(controlName, controlId);
-			}
-			
-			if (_.string.toBoolean(K("control_debug"))) {
-				$controlDebug = $control.find(".control-debug");
-				$controlDebugOutput = $("body").find("#control_debug");
-				
-				$controlDebugOutput.text("");
-				$controlDebug.children().each(function (index, elem) {
-					var $elem = $(elem);
-					$controlDebugOutput.text(function (textIndex, text) {
-						return text + (index ? "\n\n\n\n" : "") + "--------------------\n" + $elem.attr("title") + "\n--------------------\n\n" + $elem.text();
-					});
-				});
-			}
+			reloadControlContainer(controlName, controlId, options, callback, $control);
 		}, { 
 			stateFilter: "s_" + controlId + "_"
 		});
