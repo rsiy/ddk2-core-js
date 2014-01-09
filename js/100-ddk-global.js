@@ -1407,3 +1407,29 @@
 		}
 		fixColumnSizing('#psc_scorecard2_' + id + '_widget')
 	}
+
+	function reloadControlContainer(controlName, controlId, options, callback, $control) {
+		var $controlDebugOutput,
+			$controlDebug;
+			
+		if (typeof options.beforeInit === "function") {
+			options.beforeInit(controlName, controlId);
+		}
+		DDK[controlName].init(controlId);
+		if (typeof callback === "function") {
+			callback(controlName, controlId);
+		}
+		
+		if (_.string.toBoolean(K("control_debug"))) {
+			$controlDebug = $control.find(".control-debug");
+			$controlDebugOutput = $("body").find("#control_debug");
+			
+			$controlDebugOutput.text("");
+			$controlDebug.children().each(function (index, elem) {
+				var $elem = $(elem);
+				$controlDebugOutput.text(function (textIndex, text) {
+					return text + (index ? "\n\n\n\n" : "") + "--------------------\n" + $elem.attr("title") + "\n--------------------\n\n" + $elem.text();
+				});
+			});
+		}
+	}
