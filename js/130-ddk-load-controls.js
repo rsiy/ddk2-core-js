@@ -1,11 +1,6 @@
 DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, beforeReload) {
 	// target could be a DOM node, a jQuery selector, or a jQuery collection
 	var $target = $(target),
-		dataConfig = {
-			queryWidget: "PSC_Favorites_Record_Query",
-			useCoercedTypes: false,
-			datasetMode: "array"
-		},
 		ajaxSettings = {
 			type: "POST",
 			url: "amengine.aspx",
@@ -103,7 +98,6 @@ DDK.reloadFromFavorite = function (target, favoriteId, callback, beforeInit, bef
 	
 	// use keyword ddk.fav.id for favoriteId
 	ajaxSettings.data["ddk.fav.id"] = favoriteId;
-	ajaxSettings.data["data.config"] = JSON.stringify(dataConfig);
 
 	//include K.toObject values to ajaxSettings.data
 	_.each(_.omit(K.toObject(), function (value, key) { 
